@@ -1,19 +1,16 @@
 using System.Collections.Generic;
 using Amazon.CDK;
-using Amazon.CDK.AWS.Apigatewayv2;
 using Amazon.CDK.AWS.CodeBuild;
 using Amazon.CDK.AWS.ECR;
-using Amazon.CDK.AWS.Lambda;
-using Amazon.CDK.AwsApigatewayv2Integrations;
 using Constructs;
 
 namespace MtgDecklistsCdk
 {
-    public class MtgDecklistsBuildStack : Stack
+    public class DecklistsBuildStack : Stack
     {
         public Repository EcrRepo;
 
-        internal MtgDecklistsBuildStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        internal DecklistsBuildStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             EcrRepo = new Repository(this, "decklist-api-repo", new RepositoryProps {
                 ImageScanOnPush = true,

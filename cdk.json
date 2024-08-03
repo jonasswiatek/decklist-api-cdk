@@ -1,5 +1,5 @@
 {
-  "app": "dotnet run --project src/MtgDecklistsCdk/MtgDecklistsCdk.csproj",
+  "app": "dotnet run --project src/DecklistApiCdk/DecklistApiCdk.csproj",
   "watch": {
     "include": [
       "**"

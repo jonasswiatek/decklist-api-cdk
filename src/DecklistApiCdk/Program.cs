@@ -16,12 +16,12 @@ namespace MtgDecklistsCdk
                 Region = "eu-central-1",
             };
 
-            var buildStack = new MtgDecklistsBuildStack(app, "MtgDecklistsBuildStack", new StackProps
+            var buildStack = new DecklistsBuildStack(app, "DecklistsBuildStack", new StackProps
             {
                 Env = env
             });
 
-            var webStack = new MtgDecklistsWebStack(buildStack.EcrRepo, app, "MtgDecklistsWebStack", new StackProps
+            var webStack = new DecklistsWebStack(buildStack.EcrRepo, app, "DecklistsWebStack", new StackProps
             {
                 Env = env
             });
