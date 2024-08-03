@@ -14,7 +14,7 @@ namespace MtgDecklistsCdk
             Function decklistApiImageFunction = new DockerImageFunction(this, "DecklistApiLambdaImageFunction", new DockerImageFunctionProps {
                 Code = DockerImageCode.FromEcr(ecrRepo, new EcrImageCodeProps
                 {
-                    TagOrDigest = "DeckistApi.Web-1"
+                    TagOrDigest = "DeckistApi.Web-2"
                 } )
             });
 
