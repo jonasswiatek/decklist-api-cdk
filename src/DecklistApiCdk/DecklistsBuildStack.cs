@@ -40,7 +40,7 @@ namespace MtgDecklistsCdk
                             {
                                 { "Commands", new []
                                     {
-                                        "PROJECT_NAME=DeckistApi.Web",
+                                        "PROJECT_NAME=DecklistApi.Web",
                                         "aws ecr get-login-password | docker login --username AWS --password-stdin $ecr_repo_uri",
                                         "IMAGE_TAG=${PROJECT_NAME}-$CODEBUILD_BUILD_NUMBER"
                                     } 
@@ -52,7 +52,7 @@ namespace MtgDecklistsCdk
                             {
                                 { "Commands", new []
                                     { 
-                                        "docker build -t $ecr_repo_uri:$IMAGE_TAG ./src",
+                                        "docker build -t $ecr_repo_uri:$IMAGE_TAG -f ./src/$PROJECT_NAME/Dockerfile ./src/",
                                     } 
                                 }
                             }

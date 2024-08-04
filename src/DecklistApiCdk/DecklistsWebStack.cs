@@ -16,7 +16,7 @@ namespace MtgDecklistsCdk
             var decklistApiImageFunction = new DockerImageFunction(this, "DecklistApiLambdaImageFunction", new DockerImageFunctionProps {
                 Code = DockerImageCode.FromEcr(ecrRepo, new EcrImageCodeProps
                 {
-                    TagOrDigest = "DeckistApi.Web-2"
+                    TagOrDigest = "DecklistApi.Web-10"
                 } )
             });
 
@@ -45,6 +45,12 @@ namespace MtgDecklistsCdk
             //And the associated routes which are all configured explicitly.
             httpApi.AddRoutes(new AddRoutesOptions {
                 Path = "/",
+                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
+                Integration = deckcheckApiLambda
+            });
+
+            httpApi.AddRoutes(new AddRoutesOptions {
+                Path = "/api",
                 Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
                 Integration = deckcheckApiLambda
             });
