@@ -22,6 +22,14 @@ namespace MtgDecklistsCdk
                 TableName = "scryfall-card-data",
             });
 
+            var decklistApiUsersDdbTable = new TableV2(this, "ddb-table-decklist-api-users", new TablePropsV2 {
+                PartitionKey = new Attribute { Name = "user_email_hash", Type = AttributeType.STRING },
+                SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
+                TableClass = TableClass.STANDARD,
+                TableName = "decklist-api-users",
+                TimeToLiveAttribute = "__expires_ttl"
+            });
+
             //Lambda Function containing the webapi
             var decklistApiImageFunction = new DockerImageFunction(this, "DecklistApiLambdaImageFunction", new DockerImageFunctionProps {
                 Code = DockerImageCode.FromEcr(ecrRepo, new EcrImageCodeProps
@@ -35,8 +43,12 @@ namespace MtgDecklistsCdk
 
             //Allow it's assigned role to pull from the ECR repo containing the image
             ecrRepo.GrantPull(decklistApiImageFunction.Role);
+            
             scryfallDdbTable.GrantReadData(decklistApiImageFunction.Role);
             scryfallDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
+            decklistApiUsersDdbTable.GrantReadData(decklistApiImageFunction.Role);
+            decklistApiUsersDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
+
             decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
 
             //Wrap as an HttpLambdaIntegration object that API Gateway understands.
