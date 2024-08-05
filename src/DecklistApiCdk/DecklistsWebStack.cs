@@ -1,6 +1,7 @@
 using Amazon.CDK;
 using Amazon.CDK.AWS.Apigatewayv2;
 using Amazon.CDK.AWS.CertificateManager;
+using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.ECR;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AwsApigatewayv2Integrations;
@@ -12,6 +13,14 @@ namespace MtgDecklistsCdk
     {
         internal DecklistsWebStack(Repository ecrRepo, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
+            //DynamoDb Table
+            var scryfallDdbTable = new TableV2(this, "ddb-table-scryfall-data", new TablePropsV2 {
+                PartitionKey = new Attribute { Name = "first_letter", Type = AttributeType.STRING },
+                SortKey = new Attribute { Name = "card_name", Type = AttributeType.STRING },
+                TableClass = TableClass.STANDARD,
+                TableName = "scryfall-card-data",
+            });
+
             //Lambda Function containing the webapi
             var decklistApiImageFunction = new DockerImageFunction(this, "DecklistApiLambdaImageFunction", new DockerImageFunctionProps {
                 Code = DockerImageCode.FromEcr(ecrRepo, new EcrImageCodeProps
@@ -43,12 +52,6 @@ namespace MtgDecklistsCdk
             });
 
             //And the associated routes which are all configured explicitly.
-            httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/",
-                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
-                Integration = deckcheckApiLambda
-            });
-
             httpApi.AddRoutes(new AddRoutesOptions {
                 Path = "/api",
                 Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
