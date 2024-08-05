@@ -16,7 +16,7 @@ namespace MtgDecklistsCdk
             //DynamoDb Table
             var scryfallDdbTable = new TableV2(this, "ddb-table-scryfall-data", new TablePropsV2 {
                 PartitionKey = new Attribute { Name = "first_letter", Type = AttributeType.STRING },
-                SortKey = new Attribute { Name = "card_name", Type = AttributeType.STRING },
+                SortKey = new Attribute { Name = "card_name_sort", Type = AttributeType.STRING },
                 TableClass = TableClass.STANDARD,
                 TableName = "scryfall-card-data",
             });
