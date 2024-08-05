@@ -3,6 +3,7 @@ using Amazon.CDK.AWS.Apigatewayv2;
 using Amazon.CDK.AWS.CertificateManager;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.ECR;
+using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AwsApigatewayv2Integrations;
 using Constructs;
@@ -25,12 +26,18 @@ namespace MtgDecklistsCdk
             var decklistApiImageFunction = new DockerImageFunction(this, "DecklistApiLambdaImageFunction", new DockerImageFunctionProps {
                 Code = DockerImageCode.FromEcr(ecrRepo, new EcrImageCodeProps
                 {
-                    TagOrDigest = "DecklistApi.Web-10"
-                } )
+                    TagOrDigest = "DecklistApi.Web-13"
+                }),
+                Timeout = Duration.Seconds(20),
+                MemorySize = 512,
+                Tracing = Tracing.ACTIVE
             });
 
             //Allow it's assigned role to pull from the ECR repo containing the image
             ecrRepo.GrantPull(decklistApiImageFunction.Role);
+            scryfallDdbTable.GrantReadData(decklistApiImageFunction.Role);
+            scryfallDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
+            decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
 
             //Wrap as an HttpLambdaIntegration object that API Gateway understands.
             var deckcheckApiLambda = new HttpLambdaIntegration("DecklistApiIntegration", decklistApiImageFunction);
@@ -53,7 +60,7 @@ namespace MtgDecklistsCdk
 
             //And the associated routes which are all configured explicitly.
             httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api",
+                Path = "/api/cards/search",
                 Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
                 Integration = deckcheckApiLambda
             });
