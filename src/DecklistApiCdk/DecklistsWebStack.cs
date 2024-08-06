@@ -30,11 +30,19 @@ namespace MtgDecklistsCdk
                 TimeToLiveAttribute = "__expires_ttl"
             });
 
+            var decklistApiEventsDdbTable = new TableV2(this, "ddb-table-decklist-api-events", new TablePropsV2 {
+                PartitionKey = new Attribute { Name = "user_email_hash", Type = AttributeType.STRING },
+                SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
+                TableClass = TableClass.STANDARD,
+                TableName = "decklist-api-events",
+                TimeToLiveAttribute = "__expires_ttl"
+            });
+
             //Lambda Function containing the webapi
             var decklistApiImageFunction = new DockerImageFunction(this, "DecklistApiLambdaImageFunction", new DockerImageFunctionProps {
                 Code = DockerImageCode.FromEcr(ecrRepo, new EcrImageCodeProps
                 {
-                    TagOrDigest = "DecklistApi.Web-13"
+                    TagOrDigest = "DecklistApi.Web-15"
                 }),
                 Timeout = Duration.Seconds(20),
                 MemorySize = 512,
@@ -48,6 +56,8 @@ namespace MtgDecklistsCdk
             scryfallDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
             decklistApiUsersDdbTable.GrantReadData(decklistApiImageFunction.Role);
             decklistApiUsersDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
+            decklistApiEventsDdbTable.GrantReadData(decklistApiImageFunction.Role);
+            decklistApiEventsDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
 
             decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
 
@@ -72,13 +82,25 @@ namespace MtgDecklistsCdk
 
             //And the associated routes which are all configured explicitly.
             httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/cards/search",
-                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
+                Path = "/api/login/start",
+                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST },
                 Integration = deckcheckApiLambda
             });
-            
+
             httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/weatherforecast",
+                Path = "/api/login/continue",
+                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST },
+                Integration = deckcheckApiLambda
+            });
+
+            httpApi.AddRoutes(new AddRoutesOptions {
+                Path = "/api/logout",
+                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST },
+                Integration = deckcheckApiLambda
+            });
+
+            httpApi.AddRoutes(new AddRoutesOptions {
+                Path = "/api/cards/search",
                 Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
                 Integration = deckcheckApiLambda
             });
