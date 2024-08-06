@@ -38,6 +38,14 @@ namespace MtgDecklistsCdk
                 TimeToLiveAttribute = "__expires_ttl"
             });
 
+            var decklistApiDecksDdbTable = new TableV2(this, "ddb-table-decklist-api-decks", new TablePropsV2 {
+                PartitionKey = new Attribute { Name = "event_id", Type = AttributeType.STRING },
+                SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
+                TableClass = TableClass.STANDARD,
+                TableName = "decklist-api-decks",
+                TimeToLiveAttribute = "__expires_ttl"
+            });
+
             //Lambda Function containing the webapi
             var decklistApiImageFunction = new DockerImageFunction(this, "DecklistApiLambdaImageFunction", new DockerImageFunctionProps {
                 Code = DockerImageCode.FromEcr(ecrRepo, new EcrImageCodeProps
@@ -58,6 +66,8 @@ namespace MtgDecklistsCdk
             decklistApiUsersDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
             decklistApiEventsDdbTable.GrantReadData(decklistApiImageFunction.Role);
             decklistApiEventsDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
+            decklistApiDecksDdbTable.GrantReadData(decklistApiImageFunction.Role);
+            decklistApiDecksDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
 
             decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
 
@@ -104,6 +114,17 @@ namespace MtgDecklistsCdk
                 Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
                 Integration = deckcheckApiLambda
             });
+
+            httpApi.AddRoutes(new AddRoutesOptions {
+                Path = "/api/events",
+                Methods = new [] { 
+                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET,
+                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.DELETE,
+                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST
+                },
+                Integration = deckcheckApiLambda
+            });
+
         }
     }
 }
