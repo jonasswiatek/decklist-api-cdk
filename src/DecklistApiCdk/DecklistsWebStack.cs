@@ -129,34 +129,15 @@ namespace MtgDecklistsCdk
                 Integration = deckcheckApiLambda
             });
 
-            var oai = new OriginAccessIdentity(this, "decklist-api-cf-oai", new OriginAccessIdentityProps {
-                Comment = "OAI for decklist-api s3 access"
-            });
-
-            var websiteBucket = new Bucket(this, "decklist-api-website", new BucketProps {
-                BucketName = "decklist-api-website",
-                BlockPublicAccess = BlockPublicAccess.BLOCK_ALL,
-                Cors = new [] {
-                    new CorsRule {
-                        AllowedMethods = new[]{ HttpMethods.GET, HttpMethods.HEAD },
-                        AllowedOrigins = new[]{ "*" },
-                        AllowedHeaders = new[]{ "*" },
-                        MaxAge = 300
-                    }
-                }
-            });
-
-            websiteBucket.GrantRead(oai);
-
             new Distribution(this, "decklist-api-distribution", new DistributionProps {
                 DefaultRootObject = "index.html",
                 Certificate = certificateUse1,
                 DomainNames = new[]{ domainName },
                 DefaultBehavior = new BehaviorOptions {
-                    Origin = new S3Origin(websiteBucket, new S3OriginProps {
+                    Origin = new S3Origin(buildStack.WebsiteS3Bucket, new S3OriginProps {
                         OriginId = "decklist-api-website-s3",
-                        OriginPath = "v1.0.1",
-                        OriginAccessIdentity = oai,
+                        OriginPath = "v1.0.7",
+                        OriginAccessIdentity = buildStack.WebsiteS3BucketOai,
                     }),
                     AllowedMethods = AllowedMethods.ALLOW_GET_HEAD,
                     ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
