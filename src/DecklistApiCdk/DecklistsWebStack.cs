@@ -4,78 +4,48 @@ using Amazon.CDK.AWS.Apigatewayv2;
 using Amazon.CDK.AWS.CertificateManager;
 using Amazon.CDK.AWS.CloudFront;
 using Amazon.CDK.AWS.CloudFront.Origins;
-using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Lambda;
-using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AwsApigatewayv2Integrations;
 using Constructs;
+using DecklistApiCdk;
 
 namespace MtgDecklistsCdk
 {
     public class DecklistsWebStack : Stack
     {
-        internal DecklistsWebStack(DecklistsBuildStack buildStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        internal DecklistsWebStack(ResourceStack resourceStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            //DynamoDb Table
-            var scryfallDdbTable = new TableV2(this, "ddb-table-scryfall-data", new TablePropsV2 {
-                PartitionKey = new Attribute { Name = "first_letter", Type = AttributeType.STRING },
-                SortKey = new Attribute { Name = "card_name_sort", Type = AttributeType.STRING },
-                TableClass = TableClass.STANDARD,
-                TableName = "scryfall-card-data",
-            });
-
-            var decklistApiUsersDdbTable = new TableV2(this, "ddb-table-decklist-api-users", new TablePropsV2 {
-                PartitionKey = new Attribute { Name = "user_email_hash", Type = AttributeType.STRING },
-                SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
-                TableClass = TableClass.STANDARD,
-                TableName = "decklist-api-users",
-                TimeToLiveAttribute = "__expires_ttl"
-            });
-
-            var decklistApiEventsDdbTable = new TableV2(this, "ddb-table-decklist-api-events", new TablePropsV2 {
-                PartitionKey = new Attribute { Name = "user_email_hash", Type = AttributeType.STRING },
-                SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
-                TableClass = TableClass.STANDARD,
-                TableName = "decklist-api-events",
-                TimeToLiveAttribute = "__expires_ttl"
-            });
-
-            var decklistApiDecksDdbTable = new TableV2(this, "ddb-table-decklist-api-decks", new TablePropsV2 {
-                PartitionKey = new Attribute { Name = "event_id", Type = AttributeType.STRING },
-                SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
-                TableClass = TableClass.STANDARD,
-                TableName = "decklist-api-decks",
-                TimeToLiveAttribute = "__expires_ttl"
-            });
+            var decklistApiImageTag = "DecklistApi.Web-1";
+            var decklistWebsiteVersion = "v1.0.1";
 
             //Lambda Function containing the webapi
-            var decklistApiImageFunction = new DockerImageFunction(this, "DecklistApiLambdaImageFunction", new DockerImageFunctionProps {
-                Code = DockerImageCode.FromEcr(buildStack.EcrRepo, new EcrImageCodeProps
+            var decklistApiImageFunction = new DockerImageFunction(this, "decklist-api-lambda-function", new DockerImageFunctionProps
+            {
+                FunctionName = "decklist-api",
+                Description = "Executes docker image containing the asp.net code for the API",
+                Code = DockerImageCode.FromEcr(resourceStack.EcrRepo, new EcrImageCodeProps
                 {
-                    TagOrDigest = "DecklistApi.Web-15"
+                    TagOrDigest = decklistApiImageTag
                 }),
                 Timeout = Duration.Seconds(20),
                 MemorySize = 512,
-                Tracing = Tracing.ACTIVE
+                Tracing = Tracing.ACTIVE,
             });
 
             //Allow it's assigned role to pull from the ECR repo containing the image
-            buildStack.EcrRepo.GrantPull(decklistApiImageFunction.Role);
+            resourceStack.EcrRepo.GrantPull(decklistApiImageFunction.Role);
             
-            scryfallDdbTable.GrantReadData(decklistApiImageFunction.Role);
-            scryfallDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
-            decklistApiUsersDdbTable.GrantReadData(decklistApiImageFunction.Role);
-            decklistApiUsersDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
-            decklistApiEventsDdbTable.GrantReadData(decklistApiImageFunction.Role);
-            decklistApiEventsDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
-            decklistApiDecksDdbTable.GrantReadData(decklistApiImageFunction.Role);
-            decklistApiDecksDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
+            resourceStack.ScryfallDdbTable.GrantReadData(decklistApiImageFunction.Role);
+            resourceStack.ScryfallDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
+            resourceStack.DecklistApiUsersDdbTable.GrantReadWriteData(decklistApiImageFunction.Role);
+            resourceStack.DecklistApiEventsDdbTable.GrantReadWriteData(decklistApiImageFunction.Role);
+            resourceStack.DecklistApiDecksDdbTable.GrantReadWriteData(decklistApiImageFunction.Role);
 
-            decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
+            decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "decklist-api-lambda-xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
 
             //Wrap as an HttpLambdaIntegration object that API Gateway understands.
-            var deckcheckApiLambda = new HttpLambdaIntegration("DecklistApiIntegration", decklistApiImageFunction);
+            var deckcheckApiLambda = new HttpLambdaIntegration("decklist-api-gateway-lambda-integration", decklistApiImageFunction);
 
             //Certificate and domain name for API Gateway
             var domainName = "decklist.lol";
@@ -88,7 +58,7 @@ namespace MtgDecklistsCdk
             });
 
             //The API Gateway itself, configured as Http API
-            var httpApi = new HttpApi(this, "decklist-api", new HttpApiProps {
+            var httpApi = new HttpApi(this, "decklist-api-gateway", new HttpApiProps {
                 DefaultDomainMapping = new DomainMappingOptions {
                     DomainName = dn
                 }
@@ -129,15 +99,15 @@ namespace MtgDecklistsCdk
                 Integration = deckcheckApiLambda
             });
 
-            new Distribution(this, "decklist-api-distribution", new DistributionProps {
+            new Distribution(this, "decklist-cloudfront-distribution", new DistributionProps {
                 DefaultRootObject = "index.html",
                 Certificate = certificateUse1,
                 DomainNames = new[]{ domainName },
                 DefaultBehavior = new BehaviorOptions {
-                    Origin = new S3Origin(buildStack.WebsiteS3Bucket, new S3OriginProps {
-                        OriginId = "decklist-api-website-s3",
-                        OriginPath = "v1.0.7",
-                        OriginAccessIdentity = buildStack.WebsiteS3BucketOai,
+                    Origin = new S3Origin(resourceStack.WebsiteS3Bucket, new S3OriginProps {
+                        OriginId = "decklist-api-website-s3-bucket",
+                        OriginPath = decklistWebsiteVersion,
+                        OriginAccessIdentity = resourceStack.WebsiteS3BucketOai,
                     }),
                     AllowedMethods = AllowedMethods.ALLOW_GET_HEAD,
                     ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -155,10 +125,13 @@ namespace MtgDecklistsCdk
                     { "/api/*", new BehaviorOptions {
                         CachePolicy = CachePolicy.CACHING_DISABLED,
                         AllowedMethods = AllowedMethods.ALLOW_ALL,
-                        Origin = new HttpOrigin($"{httpApi.HttpApiId}.execute-api.eu-central-1.amazonaws.com", new HttpOriginProps {
-                            OriginId = "decklist-api-gateway"
+                        Origin = new HttpOrigin($"{httpApi.HttpApiId}.execute-api.{Region}.amazonaws.com", new HttpOriginProps {
+                            OriginId = "decklist-api-gateway",
                         }),
-                        ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS
+                        ViewerProtocolPolicy = ViewerProtocolPolicy.HTTPS_ONLY,
+                        OriginRequestPolicy = new OriginRequestPolicy(this, "decklist-api-cf-behavior", new OriginRequestPolicyProps {
+                            CookieBehavior = OriginRequestCookieBehavior.AllowList("decklist-api-auth"),
+                        })
                     }}
                 }
             });

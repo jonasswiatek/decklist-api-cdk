@@ -1,4 +1,5 @@
 ﻿using Amazon.CDK;
+using DecklistApiCdk;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,17 +17,26 @@ namespace MtgDecklistsCdk
                 Region = "eu-central-1",
             };
 
-            var buildStack = new DecklistsBuildStack(app, "DecklistApiBuildStack", new StackProps
+            var resourceStack = new ResourceStack(app, "ResourceStack", new StackProps
             {
                 Env = env
             });
 
-            var webStack = new DecklistsWebStack(buildStack, app, "DecklistApiWebStack", new StackProps
+            var buildStack = new DecklistsBuildStack(resourceStack, app, "BuildStack", new StackProps
+            {
+                Env = env
+            });
+            
+            buildStack.AddDependency(resourceStack);
+
+            var webStack = new DecklistsWebStack(resourceStack, app, "WebStack", new StackProps
             {
                 Env = env
             });
 
+            webStack.AddDependency(resourceStack);
             webStack.AddDependency(buildStack);
+
             app.Synth();
         }
     }
