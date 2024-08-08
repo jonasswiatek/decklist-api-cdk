@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Amazon.CDK;
 using Amazon.CDK.AWS.CodeBuild;
 using Amazon.CDK.AWS.ECR;
+using Amazon.CDK.AWS.S3;
 using Constructs;
 
 namespace MtgDecklistsCdk
@@ -9,7 +10,7 @@ namespace MtgDecklistsCdk
     public class DecklistsBuildStack : Stack
     {
         public Repository EcrRepo;
-
+        
         internal DecklistsBuildStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             EcrRepo = new Repository(this, "decklist-api-repo", new RepositoryProps {

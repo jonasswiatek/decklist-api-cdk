@@ -21,7 +21,7 @@ namespace MtgDecklistsCdk
                 Env = env
             });
 
-            var webStack = new DecklistsWebStack(buildStack.EcrRepo, app, "DecklistApiWebStack", new StackProps
+            var webStack = new DecklistsWebStack(buildStack, app, "DecklistApiWebStack", new StackProps
             {
                 Env = env
             });

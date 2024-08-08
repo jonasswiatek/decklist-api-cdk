@@ -1,10 +1,13 @@
+using System.Collections.Generic;
 using Amazon.CDK;
 using Amazon.CDK.AWS.Apigatewayv2;
 using Amazon.CDK.AWS.CertificateManager;
+using Amazon.CDK.AWS.CloudFront;
+using Amazon.CDK.AWS.CloudFront.Origins;
 using Amazon.CDK.AWS.DynamoDB;
-using Amazon.CDK.AWS.ECR;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Lambda;
+using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AwsApigatewayv2Integrations;
 using Constructs;
 
@@ -12,7 +15,7 @@ namespace MtgDecklistsCdk
 {
     public class DecklistsWebStack : Stack
     {
-        internal DecklistsWebStack(Repository ecrRepo, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        internal DecklistsWebStack(DecklistsBuildStack buildStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             //DynamoDb Table
             var scryfallDdbTable = new TableV2(this, "ddb-table-scryfall-data", new TablePropsV2 {
@@ -48,7 +51,7 @@ namespace MtgDecklistsCdk
 
             //Lambda Function containing the webapi
             var decklistApiImageFunction = new DockerImageFunction(this, "DecklistApiLambdaImageFunction", new DockerImageFunctionProps {
-                Code = DockerImageCode.FromEcr(ecrRepo, new EcrImageCodeProps
+                Code = DockerImageCode.FromEcr(buildStack.EcrRepo, new EcrImageCodeProps
                 {
                     TagOrDigest = "DecklistApi.Web-15"
                 }),
@@ -58,7 +61,7 @@ namespace MtgDecklistsCdk
             });
 
             //Allow it's assigned role to pull from the ECR repo containing the image
-            ecrRepo.GrantPull(decklistApiImageFunction.Role);
+            buildStack.EcrRepo.GrantPull(decklistApiImageFunction.Role);
             
             scryfallDdbTable.GrantReadData(decklistApiImageFunction.Role);
             scryfallDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
@@ -75,12 +78,13 @@ namespace MtgDecklistsCdk
             var deckcheckApiLambda = new HttpLambdaIntegration("DecklistApiIntegration", decklistApiImageFunction);
 
             //Certificate and domain name for API Gateway
-            var certArn = "arn:aws:acm:eu-central-1:017820661759:certificate/25d4b571-d70b-4664-8c77-d7b02864638d";
             var domainName = "decklist.lol";
-
+            var certificateUse1 = Certificate.FromCertificateArn(this, "decklist-api-cert-use1", "arn:aws:acm:us-east-1:017820661759:certificate/5e784e58-7748-415e-a431-f36a3a57b84e");
+            var certificateEuc1 = Certificate.FromCertificateArn(this, "decklist-api-cert-euc1", "arn:aws:acm:eu-central-1:017820661759:certificate/25d4b571-d70b-4664-8c77-d7b02864638d");
+            
             var dn = new DomainName(this, "decklist-api-domain-name", new DomainNameProps {
                 DomainName = domainName,
-                Certificate = Certificate.FromCertificateArn(this, "decklist-api-cert", certArn)
+                Certificate = certificateEuc1
             });
 
             //The API Gateway itself, configured as Http API
@@ -125,6 +129,58 @@ namespace MtgDecklistsCdk
                 Integration = deckcheckApiLambda
             });
 
+            var oai = new OriginAccessIdentity(this, "decklist-api-cf-oai", new OriginAccessIdentityProps {
+                Comment = "OAI for decklist-api s3 access"
+            });
+
+            var websiteBucket = new Bucket(this, "decklist-api-website", new BucketProps {
+                BucketName = "decklist-api-website",
+                BlockPublicAccess = BlockPublicAccess.BLOCK_ALL,
+                Cors = new [] {
+                    new CorsRule {
+                        AllowedMethods = new[]{ HttpMethods.GET, HttpMethods.HEAD },
+                        AllowedOrigins = new[]{ "*" },
+                        AllowedHeaders = new[]{ "*" },
+                        MaxAge = 300
+                    }
+                }
+            });
+
+            websiteBucket.GrantRead(oai);
+
+            new Distribution(this, "decklist-api-distribution", new DistributionProps {
+                DefaultRootObject = "index.html",
+                Certificate = certificateUse1,
+                DomainNames = new[]{ domainName },
+                DefaultBehavior = new BehaviorOptions {
+                    Origin = new S3Origin(websiteBucket, new S3OriginProps {
+                        OriginId = "decklist-api-website-s3",
+                        OriginPath = "v1.0.1",
+                        OriginAccessIdentity = oai,
+                    }),
+                    AllowedMethods = AllowedMethods.ALLOW_GET_HEAD,
+                    ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+                    CachePolicy = new CachePolicy(this, "decklist-website-cache-policy", new CachePolicyProps {
+                        CachePolicyName = "react-spa-cache-policy",
+                        Comment = "Policy optimized for a react native app that rarely changes",
+                        EnableAcceptEncodingBrotli = true,
+                        EnableAcceptEncodingGzip = true,
+                        DefaultTtl = Duration.Seconds(10),
+                        MaxTtl = Duration.Seconds(10),
+                        MinTtl = Duration.Seconds(0)
+                    }) 
+                },
+                AdditionalBehaviors = new Dictionary<string, IBehaviorOptions>{
+                    { "/api/*", new BehaviorOptions {
+                        CachePolicy = CachePolicy.CACHING_DISABLED,
+                        AllowedMethods = AllowedMethods.ALLOW_ALL,
+                        Origin = new HttpOrigin($"{httpApi.HttpApiId}.execute-api.eu-central-1.amazonaws.com", new HttpOriginProps {
+                            OriginId = "decklist-api-gateway"
+                        }),
+                        ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS
+                    }}
+                }
+            });
         }
     }
 }
