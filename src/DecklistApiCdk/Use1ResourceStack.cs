@@ -2,6 +2,7 @@ using System;
 using Amazon.CDK;
 using Amazon.CDK.AWS.CertificateManager;
 using Constructs;
+using MtgDecklistsCdk;
 
 namespace DecklistApiCdk
 {
@@ -11,8 +12,8 @@ namespace DecklistApiCdk
 
         internal Use1ResourceStack(ResourceStack resourceStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            TlsCertificateForCloudFront = new Certificate(this, "decklist-lol-tls-cert-use1", new CertificateProps {
-                DomainName = resourceStack.DomainName,
+            TlsCertificateForCloudFront = new Certificate(this, "decklist-tls-cert-use1", new CertificateProps {
+                DomainName = Program.DomainName,
                 Validation = CertificateValidation.FromDns(resourceStack.decklist_lol_publicHostedZone)
             });
         }

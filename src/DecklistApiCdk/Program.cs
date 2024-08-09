@@ -8,25 +8,30 @@ namespace MtgDecklistsCdk
 {
     sealed class Program
     {
+        public static readonly string DomainName = "decklist.lol";
+        public static readonly string DecklistApiImageTag = "DecklistApi.Web-1";
+        public static readonly string DecklistWebsiteVersion = "v1.0.1";
+        
         public static void Main(string[] args)
         {
+            var account = "017820661759";
+
             var app = new App();
-            var env = new Amazon.CDK.Environment
-            {
-                Account = "017820661759",
-                Region = "eu-central-1",
-            };
 
             var resourceStack = new ResourceStack(app, "ResourceStack", new StackProps
             {
-                Env = env
+                Env = new Amazon.CDK.Environment
+            {
+                Account = account,
+                Region = "eu-central-1",
+            }
             });
 
             var use1ResourceStack = new Use1ResourceStack(resourceStack, app, "Use1ResourceStack", new StackProps
             {
                 Env = new Amazon.CDK.Environment
                 {
-                    Account = "017820661759",
+                    Account = account,
                     Region = "us-east-1",
                 },
                 CrossRegionReferences = true
@@ -34,16 +39,24 @@ namespace MtgDecklistsCdk
 
             use1ResourceStack.AddDependency(resourceStack);
 
-            var buildStack = new DecklistsBuildStack(resourceStack, app, "BuildStack", new StackProps
+            var buildStack = new BuildStack(resourceStack, app, "BuildStack", new StackProps
             {
-                Env = env
+                Env = new Amazon.CDK.Environment
+                {
+                    Account = account,
+                    Region = "eu-central-1",
+                }
             });
             
             buildStack.AddDependency(resourceStack);
 
-            var webStack = new DecklistsWebStack(resourceStack, use1ResourceStack, app, "WebStack", new StackProps
+            var webStack = new WebStack(resourceStack, use1ResourceStack, app, "WebStack", new StackProps
             {
-                Env = env,
+                Env = new Amazon.CDK.Environment
+                {
+                    Account = account,
+                    Region = "eu-central-1",
+                },
                 CrossRegionReferences = true
             });
 

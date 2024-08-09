@@ -6,9 +6,9 @@ using DecklistApiCdk;
 
 namespace MtgDecklistsCdk
 {
-    public class DecklistsBuildStack : Stack
+    public class BuildStack : Stack
     {
-        internal DecklistsBuildStack(ResourceStack resourceStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        internal BuildStack(ResourceStack resourceStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             var decklistApiBuild = new Project(this, "decklist-api-build-project", new ProjectProps {
                 ProjectName = "decklist-api",

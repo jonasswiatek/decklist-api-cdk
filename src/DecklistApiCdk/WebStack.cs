@@ -13,13 +13,10 @@ using DecklistApiCdk;
 
 namespace MtgDecklistsCdk
 {
-    public class DecklistsWebStack : Stack
+    public class WebStack : Stack
     {
-        internal DecklistsWebStack(ResourceStack resourceStack, Use1ResourceStack use1ResourceStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        internal WebStack(ResourceStack resourceStack, Use1ResourceStack use1ResourceStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
-            var decklistApiImageTag = "DecklistApi.Web-1";
-            var decklistWebsiteVersion = "v1.0.1";
-
             //Lambda Function containing the webapi
             var decklistApiImageFunction = new DockerImageFunction(this, "decklist-api-lambda-function", new DockerImageFunctionProps
             {
@@ -27,7 +24,7 @@ namespace MtgDecklistsCdk
                 Description = "Executes docker image containing the asp.net code for the API",
                 Code = DockerImageCode.FromEcr(resourceStack.EcrRepo, new EcrImageCodeProps
                 {
-                    TagOrDigest = decklistApiImageTag
+                    TagOrDigest = Program.DecklistApiImageTag
                 }),
                 Timeout = Duration.Seconds(20),
                 MemorySize = 512,
@@ -89,11 +86,11 @@ namespace MtgDecklistsCdk
             var cloudfrontDistribution = new Distribution(this, "decklist-cloudfront-distribution", new DistributionProps {
                 DefaultRootObject = "index.html",
                 Certificate = use1ResourceStack.TlsCertificateForCloudFront,
-                DomainNames = new[]{ resourceStack.DomainName },
+                DomainNames = new[]{ Program.DomainName },
                 DefaultBehavior = new BehaviorOptions {
                     Origin = new S3Origin(resourceStack.WebsiteS3Bucket, new S3OriginProps {
                         OriginId = "decklist-api-website-s3-bucket",
-                        OriginPath = decklistWebsiteVersion,
+                        OriginPath = Program.DecklistWebsiteVersion,
                         OriginAccessIdentity = resourceStack.WebsiteS3BucketOai,
                     }),
                     AllowedMethods = AllowedMethods.ALLOW_GET_HEAD,
