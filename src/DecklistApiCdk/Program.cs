@@ -22,6 +22,18 @@ namespace MtgDecklistsCdk
                 Env = env
             });
 
+            var use1ResourceStack = new Use1ResourceStack(resourceStack, app, "Use1ResourceStack", new StackProps
+            {
+                Env = new Amazon.CDK.Environment
+                {
+                    Account = "017820661759",
+                    Region = "us-east-1",
+                },
+                CrossRegionReferences = true
+            });
+
+            use1ResourceStack.AddDependency(resourceStack);
+
             var buildStack = new DecklistsBuildStack(resourceStack, app, "BuildStack", new StackProps
             {
                 Env = env
@@ -29,12 +41,14 @@ namespace MtgDecklistsCdk
             
             buildStack.AddDependency(resourceStack);
 
-            var webStack = new DecklistsWebStack(resourceStack, app, "WebStack", new StackProps
+            var webStack = new DecklistsWebStack(resourceStack, use1ResourceStack, app, "WebStack", new StackProps
             {
-                Env = env
+                Env = env,
+                CrossRegionReferences = true
             });
 
             webStack.AddDependency(resourceStack);
+            webStack.AddDependency(use1ResourceStack);
             webStack.AddDependency(buildStack);
 
             app.Synth();

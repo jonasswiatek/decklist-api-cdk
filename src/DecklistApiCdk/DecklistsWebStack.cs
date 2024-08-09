@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using Amazon.CDK;
 using Amazon.CDK.AWS.Apigatewayv2;
-using Amazon.CDK.AWS.CertificateManager;
 using Amazon.CDK.AWS.CloudFront;
 using Amazon.CDK.AWS.CloudFront.Origins;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Lambda;
+using Amazon.CDK.AWS.Route53;
+using Amazon.CDK.AWS.Route53.Targets;
 using Amazon.CDK.AwsApigatewayv2Integrations;
 using Constructs;
 using DecklistApiCdk;
@@ -14,7 +15,7 @@ namespace MtgDecklistsCdk
 {
     public class DecklistsWebStack : Stack
     {
-        internal DecklistsWebStack(ResourceStack resourceStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
+        internal DecklistsWebStack(ResourceStack resourceStack, Use1ResourceStack use1ResourceStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
             var decklistApiImageTag = "DecklistApi.Web-1";
             var decklistWebsiteVersion = "v1.0.1";
@@ -47,22 +48,8 @@ namespace MtgDecklistsCdk
             //Wrap as an HttpLambdaIntegration object that API Gateway understands.
             var deckcheckApiLambda = new HttpLambdaIntegration("decklist-api-gateway-lambda-integration", decklistApiImageFunction);
 
-            //Certificate and domain name for API Gateway
-            var domainName = "decklist.lol";
-            var certificateUse1 = Certificate.FromCertificateArn(this, "decklist-api-cert-use1", "arn:aws:acm:us-east-1:017820661759:certificate/5e784e58-7748-415e-a431-f36a3a57b84e");
-            var certificateEuc1 = Certificate.FromCertificateArn(this, "decklist-api-cert-euc1", "arn:aws:acm:eu-central-1:017820661759:certificate/25d4b571-d70b-4664-8c77-d7b02864638d");
-            
-            var dn = new DomainName(this, "decklist-api-domain-name", new DomainNameProps {
-                DomainName = domainName,
-                Certificate = certificateEuc1
-            });
-
             //The API Gateway itself, configured as Http API
-            var httpApi = new HttpApi(this, "decklist-api-gateway", new HttpApiProps {
-                DefaultDomainMapping = new DomainMappingOptions {
-                    DomainName = dn
-                }
-            });
+            var httpApi = new HttpApi(this, "decklist-api-gateway", new HttpApiProps { });
 
             //And the associated routes which are all configured explicitly.
             httpApi.AddRoutes(new AddRoutesOptions {
@@ -99,10 +86,10 @@ namespace MtgDecklistsCdk
                 Integration = deckcheckApiLambda
             });
 
-            new Distribution(this, "decklist-cloudfront-distribution", new DistributionProps {
+            var cloudfrontDistribution = new Distribution(this, "decklist-cloudfront-distribution", new DistributionProps {
                 DefaultRootObject = "index.html",
-                Certificate = certificateUse1,
-                DomainNames = new[]{ domainName },
+                Certificate = use1ResourceStack.TlsCertificateForCloudFront,
+                DomainNames = new[]{ resourceStack.DomainName },
                 DefaultBehavior = new BehaviorOptions {
                     Origin = new S3Origin(resourceStack.WebsiteS3Bucket, new S3OriginProps {
                         OriginId = "decklist-api-website-s3-bucket",
@@ -134,6 +121,11 @@ namespace MtgDecklistsCdk
                         })
                     }}
                 }
+            });
+
+            new ARecord(this, "decklist-lol-cloudfront-alias", new ARecordProps {
+                Zone = resourceStack.decklist_lol_publicHostedZone,
+                Target = RecordTarget.FromAlias(new CloudFrontTarget(cloudfrontDistribution))
             });
         }
     }

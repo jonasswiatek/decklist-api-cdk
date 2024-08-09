@@ -1,8 +1,9 @@
 using Amazon.CDK;
+using Amazon.CDK.AWS.CertificateManager;
 using Amazon.CDK.AWS.CloudFront;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.ECR;
-using Amazon.CDK.AWS.Logs;
+using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.S3;
 using Constructs;
 
@@ -11,12 +12,18 @@ namespace DecklistApiCdk
     public class ResourceStack : Stack
     {
         public Repository EcrRepo;
+
         public Bucket WebsiteS3Bucket;
         public OriginAccessIdentity WebsiteS3BucketOai;
+
         public TableV2 ScryfallDdbTable;
         public TableV2 DecklistApiUsersDdbTable;
         public TableV2 DecklistApiEventsDdbTable;
         public TableV2 DecklistApiDecksDdbTable;
+
+        public PublicHostedZone decklist_lol_publicHostedZone;
+
+        public readonly string DomainName = "decklist.lol";
 
         internal ResourceStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
@@ -76,6 +83,52 @@ namespace DecklistApiCdk
             });
 
             WebsiteS3Bucket.GrantRead(WebsiteS3BucketOai);
+
+            decklist_lol_publicHostedZone = new PublicHostedZone(this, "decklist-lol-hostedzone", new PublicHostedZoneProps {
+                ZoneName = DomainName
+            });
+
+            new CnameRecord(this, "decklist-lol-sg-cname-em7133", new CnameRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = "em7133",
+                DomainName = "u46110892.wl143.sendgrid.net",
+                Ttl = Duration.Minutes(5)
+            });
+
+            new CnameRecord(this, "decklist-lol-sg-cname-s1_domainkey", new CnameRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = "s1._domainkey",
+                DomainName = "s1.domainkey.u46110892.wl143.sendgrid.net",
+                Ttl = Duration.Minutes(5)
+            });
+
+            new CnameRecord(this, "decklist-lol-sg-cname-s2_domainkey", new CnameRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = "s2._domainkey",
+                DomainName = "s2.domainkey.u46110892.wl143.sendgrid.net",
+                Ttl = Duration.Minutes(5)
+            });
+
+            new TxtRecord(this, "decklist-lol-sg-txt-_dmarc", new TxtRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = "_dmarc",
+                Values = new [] { "v=DMARC1; p=none; rua=mailto:dmarc_agg@vali.email;" },
+                Ttl = Duration.Minutes(5)
+            });
+
+            new CnameRecord(this, "decklist-lol-sg-cname-url7648", new CnameRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = "url7648",
+                DomainName = "sendgrid.net",
+                Ttl = Duration.Minutes(5)
+            });
+
+            new CnameRecord(this, "decklist-lol-sg-cname-46110892", new CnameRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = "46110892",
+                DomainName = "sendgrid.net",
+                Ttl = Duration.Minutes(5)
+            });
         }
     }
 }
