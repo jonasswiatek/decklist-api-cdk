@@ -1,5 +1,4 @@
 using Amazon.CDK;
-using Amazon.CDK.AWS.CertificateManager;
 using Amazon.CDK.AWS.CloudFront;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.ECR;
@@ -45,7 +44,7 @@ namespace DecklistApiCdk
             });
 
             DecklistApiEventsDdbTable = new TableV2(this, "ddb-table-decklist-api-events", new TablePropsV2 {
-                PartitionKey = new Attribute { Name = "user_email_hash", Type = AttributeType.STRING },
+                PartitionKey = new Attribute { Name = "event_id", Type = AttributeType.STRING },
                 SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
                 TableClass = TableClass.STANDARD,
                 TableName = "decklist-api-events",
