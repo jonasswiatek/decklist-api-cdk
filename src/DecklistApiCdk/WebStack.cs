@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Amazon.CDK;
 using Amazon.CDK.AWS.Apigatewayv2;
 using Amazon.CDK.AWS.CloudFront;
@@ -83,6 +85,16 @@ namespace MtgDecklistsCdk
                 Integration = deckcheckApiLambda
             });
 
+            //A cloudfront function that will rewrite certain paths to request index.html.
+            var reactRouterFunction = new Amazon.CDK.AWS.CloudFront.Function(this, "decklist-cloudfront-function-react-router", new Amazon.CDK.AWS.CloudFront.FunctionProps {
+                Code = FunctionCode.FromFile(new FileCodeOptions {
+                    FilePath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, "FunctionCode", "react-router-cloudfront-function.js")
+                }),
+                Runtime = FunctionRuntime.JS_2_0,
+                FunctionName = "react-route-handler",
+                AutoPublish = true
+            });
+
             var cloudfrontDistribution = new Distribution(this, "decklist-cloudfront-distribution", new DistributionProps {
                 DefaultRootObject = "index.html",
                 Certificate = use1ResourceStack.TlsCertificateForCloudFront,
@@ -103,7 +115,13 @@ namespace MtgDecklistsCdk
                         DefaultTtl = Duration.Seconds(10),
                         MaxTtl = Duration.Seconds(10),
                         MinTtl = Duration.Seconds(0)
-                    }) 
+                    }),
+                    FunctionAssociations = new []{
+                        new FunctionAssociation {
+                            EventType = FunctionEventType.VIEWER_REQUEST,
+                            Function = reactRouterFunction
+                        }
+                    }
                 },
                 AdditionalBehaviors = new Dictionary<string, IBehaviorOptions>{
                     { "/api/*", new BehaviorOptions {
