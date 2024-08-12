@@ -49,7 +49,15 @@ namespace DecklistApiCdk
                 TableClass = TableClass.STANDARD,
                 TableName = "decklist-api-events",
                 TimeToLiveAttribute = "__expires_ttl",
-                RemovalPolicy = RemovalPolicy.RETAIN
+                RemovalPolicy = RemovalPolicy.RETAIN,
+                GlobalSecondaryIndexes = new [] {
+                    new GlobalSecondaryIndexPropsV2() {
+                        IndexName = "user-events-index",
+                        PartitionKey = new Attribute { Name = "user_email_hash", Type = AttributeType.STRING },
+                        SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
+                        ProjectionType = ProjectionType.ALL
+                    }
+                }
             });
 
             DecklistApiDecksDdbTable = new TableV2(this, "ddb-table-decklist-api-decks", new TablePropsV2 {
