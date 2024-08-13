@@ -9,7 +9,7 @@ namespace MtgDecklistsCdk
     sealed class Program
     {
         public static readonly string DomainName = "decklist.lol";
-        public static readonly string DecklistApiImageTag = "DecklistApi.Web-1";
+        public static readonly string DecklistApiImageTag = "DecklistApi.Web-3";
         public static readonly string DecklistWebsiteVersion = "v1.0.4";
         
         public static void Main(string[] args)
