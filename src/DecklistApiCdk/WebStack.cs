@@ -76,7 +76,23 @@ namespace MtgDecklistsCdk
             });
 
             httpApi.AddRoutes(new AddRoutesOptions {
+                Path = "/api/me",
+                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
+                Integration = deckcheckApiLambda
+            });
+
+            httpApi.AddRoutes(new AddRoutesOptions {
                 Path = "/api/events",
+                Methods = new [] { 
+                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET,
+                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.DELETE,
+                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST
+                },
+                Integration = deckcheckApiLambda
+            });
+
+            httpApi.AddRoutes(new AddRoutesOptions {
+                Path = "/api/events/{proxy+}",
                 Methods = new [] { 
                     Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET,
                     Amazon.CDK.AWS.Apigatewayv2.HttpMethod.DELETE,
