@@ -33,7 +33,7 @@ namespace DecklistApiCdk
                 
                 Billing = Billing.Provisioned(new ThroughputProps {
                     ReadCapacity = Capacity.Fixed(12),
-                    WriteCapacity = Capacity.Fixed(5)
+                    WriteCapacity = Capacity.Autoscaled(new AutoscaledCapacityOptions { MaxCapacity = 5, SeedCapacity = 5 })
                 }),
 
                 TableClass = TableClass.STANDARD,
@@ -77,7 +77,7 @@ namespace DecklistApiCdk
 
                 Billing = Billing.Provisioned(new ThroughputProps {
                     ReadCapacity = Capacity.Fixed(13),
-                    WriteCapacity = Capacity.Fixed(20)
+                    WriteCapacity = Capacity.Autoscaled(new AutoscaledCapacityOptions { MaxCapacity = 20, SeedCapacity = 5 })
                 }),
 
                 TableClass = TableClass.STANDARD,
