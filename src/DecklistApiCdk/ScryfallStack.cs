@@ -30,7 +30,7 @@ namespace DecklistApiCdk;
                     { "sqs_queue_url", queue.QueueUrl }
                 },
                 Timeout = Duration.Seconds(120),
-                MemorySize = 1024,
+                MemorySize = 512,
             });
 
             queue.GrantSendMessages(scryfallReaderImageFunction.Role);
