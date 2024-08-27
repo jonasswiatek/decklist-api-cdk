@@ -117,6 +117,63 @@ namespace MtgDecklistsCdk
             });
 
             resourceStack.WebsiteS3Bucket.GrantWrite(websiteBuildProject.Role);
+
+            var scryfallReaderBuild = new Project(this, "scryfall-reader-build-project", new ProjectProps {
+                ProjectName = "scryfall-reader",
+                Source = Source.GitHub(new GitHubSourceProps {
+                    Owner = "jonasswiatek",
+                    Repo = "decklist-api-scryfall-import",
+                }),
+                Environment = new BuildEnvironment {
+                    ComputeType = ComputeType.SMALL,
+                    BuildImage = LinuxBuildImage.STANDARD_5_0
+                },
+                EnvironmentVariables = new Dictionary<string, IBuildEnvironmentVariable>()
+                {
+                    {"ecr_repo_name", new BuildEnvironmentVariable{Type = BuildEnvironmentVariableType.PLAINTEXT, Value = resourceStack.EcrRepo.RepositoryName} },
+                    {"ecr_repo_uri", new BuildEnvironmentVariable{Type = BuildEnvironmentVariableType.PLAINTEXT, Value = resourceStack.EcrRepo.RepositoryUri} },
+                },
+                BuildSpec = BuildSpec.FromObject(new Dictionary<string, object> {
+                    { "version", "0.2" },
+                    { "phases", new Dictionary<string, Dictionary<string, string[]>> {
+                        {
+                            "pre_build", new Dictionary<string, string[]>
+                            {
+                                { "Commands", new []
+                                    {
+                                        "PROJECT_NAME=DecklistApi.ScryfallReader",
+                                        "aws ecr get-login-password | docker login --username AWS --password-stdin $ecr_repo_uri",
+                                        "IMAGE_TAG=${PROJECT_NAME}-$CODEBUILD_BUILD_NUMBER"
+                                    } 
+                                }
+                            }
+                        },
+                        {
+                            "build", new Dictionary<string, string[]>
+                            {
+                                { "Commands", new []
+                                    { 
+                                        "docker build -t $ecr_repo_uri:$IMAGE_TAG -f ./src/$PROJECT_NAME/Dockerfile ./src/",
+                                    } 
+                                }
+                            }
+                        },
+                        {
+                            "post_build", new Dictionary<string, string[]>
+                            {
+                                { "Commands", new []
+                                    { 
+                                        "docker push $ecr_repo_uri:$IMAGE_TAG",
+                                    } 
+                                }
+                            }
+                        }
+
+                    } }
+                })
+            });
+
+            resourceStack.EcrRepo.GrantPush(scryfallReaderBuild.Role);
         }
     }
 }

@@ -12,6 +12,8 @@ namespace MtgDecklistsCdk
         public static readonly string DecklistApiImageTag = "DecklistApi.Web-4";
         public static readonly string DecklistWebsiteVersion = "v1.0.5";
         
+        public static readonly string ScryfalllReaderImageTag = "DecklistApi.ScryfallReader-3";
+
         public static void Main(string[] args)
         {
             var account = "017820661759";
@@ -21,10 +23,10 @@ namespace MtgDecklistsCdk
             var resourceStack = new ResourceStack(app, "ResourceStack", new StackProps
             {
                 Env = new Amazon.CDK.Environment
-            {
-                Account = account,
-                Region = "eu-central-1",
-            }
+                {
+                    Account = account,
+                    Region = "eu-central-1",
+                }
             });
 
             var use1ResourceStack = new Use1ResourceStack(resourceStack, app, "Use1ResourceStack", new StackProps
@@ -63,6 +65,17 @@ namespace MtgDecklistsCdk
             webStack.AddDependency(resourceStack);
             webStack.AddDependency(use1ResourceStack);
             webStack.AddDependency(buildStack);
+
+            var scryfallStack = new ScryfallStack(resourceStack, app, "ScryfallStack", new StackProps
+            {
+                Env = new Amazon.CDK.Environment
+                {
+                    Account = account,
+                    Region = "eu-central-1",
+                }
+            });
+
+            scryfallStack.AddDependency(resourceStack);
 
             app.Synth();
         }
