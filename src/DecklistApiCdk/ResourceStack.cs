@@ -27,29 +27,38 @@ namespace DecklistApiCdk
         {
             //DynamoDb Table
             ScryfallDdbTable = new TableV2(this, "ddb-table-scryfall-data", new TablePropsV2 {
+                TableName = "scryfall-card-data",
                 PartitionKey = new Attribute { Name = "first_letter", Type = AttributeType.STRING },
                 SortKey = new Attribute { Name = "card_name_sort", Type = AttributeType.STRING },
+                
+                Billing = Billing.Provisioned(new ThroughputProps {
+                    ReadCapacity = Capacity.Fixed(12),
+                    WriteCapacity = Capacity.Fixed(5)
+                }),
+
                 TableClass = TableClass.STANDARD,
-                TableName = "scryfall-card-data",
                 RemovalPolicy = RemovalPolicy.RETAIN
             });
 
             DecklistApiUsersDdbTable = new TableV2(this, "ddb-table-decklist-api-users", new TablePropsV2 {
+                TableName = "decklist-api-users",
                 PartitionKey = new Attribute { Name = "user_email_hash", Type = AttributeType.STRING },
                 SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
-                TableClass = TableClass.STANDARD,
-                TableName = "decklist-api-users",
                 TimeToLiveAttribute = "__expires_ttl",
+
+                TableClass = TableClass.STANDARD,
                 RemovalPolicy = RemovalPolicy.RETAIN
             });
 
             DecklistApiEventsDdbTable = new TableV2(this, "ddb-table-decklist-api-events", new TablePropsV2 {
+                TableName = "decklist-api-events",
                 PartitionKey = new Attribute { Name = "event_id", Type = AttributeType.STRING },
                 SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
-                TableClass = TableClass.STANDARD,
-                TableName = "decklist-api-events",
                 TimeToLiveAttribute = "__expires_ttl",
+
+                TableClass = TableClass.STANDARD,
                 RemovalPolicy = RemovalPolicy.RETAIN,
+
                 GlobalSecondaryIndexes = new [] {
                     new GlobalSecondaryIndexPropsV2() {
                         IndexName = "user-events-index",
@@ -61,11 +70,17 @@ namespace DecklistApiCdk
             });
 
             DecklistApiDecksDdbTable = new TableV2(this, "ddb-table-decklist-api-decks", new TablePropsV2 {
+                TableName = "decklist-api-decks",
                 PartitionKey = new Attribute { Name = "event_id", Type = AttributeType.STRING },
                 SortKey = new Attribute { Name = "item", Type = AttributeType.STRING },
-                TableClass = TableClass.STANDARD,
-                TableName = "decklist-api-decks",
                 TimeToLiveAttribute = "__expires_ttl",
+
+                Billing = Billing.Provisioned(new ThroughputProps {
+                    ReadCapacity = Capacity.Fixed(13),
+                    WriteCapacity = Capacity.Fixed(20)
+                }),
+
+                TableClass = TableClass.STANDARD,
                 RemovalPolicy = RemovalPolicy.RETAIN
             });
 
