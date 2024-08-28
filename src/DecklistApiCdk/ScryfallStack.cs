@@ -9,8 +9,8 @@ using Amazon.CDK.AWS.SQS;
 using Constructs;
 using MtgDecklistsCdk;
 
-namespace DecklistApiCdk;
-
+namespace DecklistApiCdk
+{
     public class ScryfallStack : Stack
     {
         internal ScryfallStack(ResourceStack resourceStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
@@ -70,7 +70,7 @@ namespace DecklistApiCdk;
                     { "sqs_queue_url", queue.QueueUrl }
                 },
                 Timeout = Duration.Seconds(10),
-                MemorySize = 128
+                MemorySize = 256
             });
 
             queue.GrantSendMessages(dynamodbWriterImageFunction.Role);
@@ -83,12 +83,6 @@ namespace DecklistApiCdk;
             }));
 
             resourceStack.ScryfallDdbTable.GrantWriteData(dynamodbWriterImageFunction.Role);
-
-
         }
     }
-
-    public class ScryfallScrapeRequest
-    {
-        public int LookbackDays { get; set; }
-    }  
+}
