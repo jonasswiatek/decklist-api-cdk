@@ -29,13 +29,7 @@ namespace DecklistApiCdk
             ScryfallDdbTable = new TableV2(this, "ddb-table-scryfall-data", new TablePropsV2 {
                 TableName = "scryfall-card-data",
                 PartitionKey = new Attribute { Name = "first_letter", Type = AttributeType.STRING },
-                SortKey = new Attribute { Name = "card_name_sort", Type = AttributeType.STRING },
-                
-                Billing = Billing.Provisioned(new ThroughputProps {
-                    ReadCapacity = Capacity.Fixed(12),
-                    WriteCapacity = Capacity.Autoscaled(new AutoscaledCapacityOptions { MaxCapacity = 5, SeedCapacity = 5 })
-                }),
-
+                SortKey = new Attribute { Name = "card_name_sort", Type = AttributeType.STRING },                
                 TableClass = TableClass.STANDARD,
                 RemovalPolicy = RemovalPolicy.RETAIN
             });
@@ -76,8 +70,8 @@ namespace DecklistApiCdk
                 TimeToLiveAttribute = "__expires_ttl",
 
                 Billing = Billing.Provisioned(new ThroughputProps {
-                    ReadCapacity = Capacity.Fixed(13),
-                    WriteCapacity = Capacity.Autoscaled(new AutoscaledCapacityOptions { MaxCapacity = 20, SeedCapacity = 5 })
+                    ReadCapacity = Capacity.Fixed(25),
+                    WriteCapacity = Capacity.Autoscaled(new AutoscaledCapacityOptions { MaxCapacity = 25, SeedCapacity = 5, MinCapacity = 10 })
                 }),
 
                 TableClass = TableClass.STANDARD,
