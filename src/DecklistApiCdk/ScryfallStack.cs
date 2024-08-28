@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Amazon.CDK;
-using Amazon.CDK.AWS.AppSync;
+using Amazon.CDK.AWS.Events;
 using Amazon.CDK.AWS.Events.Targets;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.Lambda.EventSources;
@@ -38,6 +38,19 @@ namespace DecklistApiCdk;
 
             queue.GrantSendMessages(scryfallReaderImageFunction.Role);
 
+            //Configure schedule for the reader function with event bridge
+            var rule = new Rule(this, "scryfall-reader-schedule-rule", new RuleProps {
+                RuleName = "scryfall-scrape-schedule",
+                Enabled = true,
+                Schedule = Schedule.Cron(new CronOptions {
+                    WeekDay = "Wednesday",
+                    Hour = "12",
+                    Minute = "00",
+                })
+            });
+
+            rule.AddTarget(new LambdaFunction(scryfallReaderImageFunction));
+
             var dynamodbWriterImageFunction = new DockerImageFunction(this, "scryfall-ddb-writer-lambda-function", new DockerImageFunctionProps
             {
                 FunctionName = "scryfall-ddb-writer",
@@ -60,10 +73,12 @@ namespace DecklistApiCdk;
                 BatchSize = 10,
                 Enabled = true,
                 MaxBatchingWindow = Duration.Seconds(10),
-                MaxConcurrency = 10,
+                MaxConcurrency = 2,
             }));
 
             resourceStack.ScryfallDdbTable.GrantWriteData(dynamodbWriterImageFunction.Role);
+
+
         }
     }
 
