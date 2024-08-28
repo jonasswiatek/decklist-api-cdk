@@ -43,13 +43,19 @@ namespace DecklistApiCdk;
                 RuleName = "scryfall-scrape-schedule",
                 Enabled = true,
                 Schedule = Schedule.Cron(new CronOptions {
-                    WeekDay = "Wednesday",
+                    WeekDay = "Thursday",
                     Hour = "12",
                     Minute = "00",
                 })
             });
 
-            rule.AddTarget(new LambdaFunction(scryfallReaderImageFunction));
+            rule.AddTarget(new LambdaFunction(scryfallReaderImageFunction, new LambdaFunctionProps {
+                Event = RuleTargetInput.FromObject(
+                    new Dictionary<string, int> {
+                        { "LookbackDays", 60 }
+                    }
+                )
+            }));
 
             var dynamodbWriterImageFunction = new DockerImageFunction(this, "scryfall-ddb-writer-lambda-function", new DockerImageFunctionProps
             {
@@ -82,3 +88,7 @@ namespace DecklistApiCdk;
         }
     }
 
+    public class ScryfallScrapeRequest
+    {
+        public int LookbackDays { get; set; }
+    }  

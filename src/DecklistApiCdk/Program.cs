@@ -12,7 +12,7 @@ namespace MtgDecklistsCdk
         public static readonly string DecklistApiImageTag = "DecklistApi.Web-4";
         public static readonly string DecklistWebsiteVersion = "v1.0.5";
         
-        public static readonly string ScryfalllReaderImageTag = "DecklistApi.ScryfallReader-13";
+        public static readonly string ScryfalllReaderImageTag = "DecklistApi.ScryfallReader-14";
 
         public static void Main(string[] args)
         {
