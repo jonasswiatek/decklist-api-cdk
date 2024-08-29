@@ -28,8 +28,8 @@ namespace MtgDecklistsCdk
                 {
                     TagOrDigest = Program.DecklistApiImageTag
                 }),
-                Timeout = Duration.Seconds(20),
-                MemorySize = 512,
+                Timeout = Duration.Seconds(5),
+                MemorySize = 256,
                 Tracing = Tracing.ACTIVE,
             });
 
@@ -77,6 +77,12 @@ namespace MtgDecklistsCdk
 
             httpApi.AddRoutes(new AddRoutesOptions {
                 Path = "/api/me",
+                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
+                Integration = deckcheckApiLambda
+            });
+
+            httpApi.AddRoutes(new AddRoutesOptions {
+                Path = "/api/todos",
                 Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
                 Integration = deckcheckApiLambda
             });
