@@ -38,9 +38,15 @@ namespace MtgDecklistsCdk
             
             resourceStack.ScryfallDdbTable.GrantReadData(decklistApiImageFunction.Role);
             resourceStack.ScryfallDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
+            
             resourceStack.DecklistApiUsersDdbTable.GrantReadWriteData(decklistApiImageFunction.Role);
+            resourceStack.DecklistApiUsersDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
+
             resourceStack.DecklistApiEventsDdbTable.GrantReadWriteData(decklistApiImageFunction.Role);
+            resourceStack.DecklistApiEventsDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
+
             resourceStack.DecklistApiDecksDdbTable.GrantReadWriteData(decklistApiImageFunction.Role);
+            resourceStack.DecklistApiDecksDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
 
             decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "decklist-api-lambda-xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
 
