@@ -28,8 +28,8 @@ namespace MtgDecklistsCdk
                 {
                     TagOrDigest = Program.DecklistApiImageTag
                 }),
-                Timeout = Duration.Seconds(5),
-                MemorySize = 256,
+                Timeout = Duration.Seconds(30),
+                MemorySize = 512,
                 Tracing = Tracing.ACTIVE,
             });
 
@@ -46,6 +46,38 @@ namespace MtgDecklistsCdk
 
             //Wrap as an HttpLambdaIntegration object that API Gateway understands.
             var deckcheckApiLambda = new HttpLambdaIntegration("decklist-api-gateway-lambda-integration", decklistApiImageFunction);
+
+
+
+            //Lambda Function containing the webapi
+            var decklistApiAotImageFunction = new DockerImageFunction(this, "decklist-api-aot-lambda-function", new DockerImageFunctionProps
+            {
+                FunctionName = "decklist-api-aot",
+                Description = "Executes docker image containing the asp.net code for the API",
+                Code = DockerImageCode.FromEcr(resourceStack.EcrRepo, new EcrImageCodeProps
+                {
+                    TagOrDigest = Program.DecklistApiAotImageTag
+                }),
+                Timeout = Duration.Seconds(5),
+                MemorySize = 256,
+                Tracing = Tracing.ACTIVE,
+            });
+
+            //Allow it's assigned role to pull from the ECR repo containing the image
+            resourceStack.EcrRepo.GrantPull(decklistApiAotImageFunction.Role);
+            
+            resourceStack.ScryfallDdbTable.GrantReadData(decklistApiAotImageFunction.Role);
+            resourceStack.ScryfallDdbTable.Grant(decklistApiAotImageFunction.Role, "dynamodb:PartiQLSelect");
+            resourceStack.DecklistApiUsersDdbTable.GrantReadWriteData(decklistApiAotImageFunction.Role);
+            resourceStack.DecklistApiEventsDdbTable.GrantReadWriteData(decklistApiAotImageFunction.Role);
+            resourceStack.DecklistApiDecksDdbTable.GrantReadWriteData(decklistApiAotImageFunction.Role);
+
+            decklistApiAotImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "decklist-api-aot-lambda-xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
+
+            //Wrap as an HttpLambdaIntegration object that API Gateway understands.
+            var deckcheckApiAotLambda = new HttpLambdaIntegration("decklist-api-gateway-lambda-integration", decklistApiAotImageFunction);
+
+
 
             //The API Gateway itself, configured as Http API
             var httpApi = new HttpApi(this, "decklist-api-gateway", new HttpApiProps { });
@@ -76,13 +108,13 @@ namespace MtgDecklistsCdk
             });
 
             httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/me",
+                Path = "/api/aot/cards/search",
                 Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
-                Integration = deckcheckApiLambda
+                Integration = deckcheckApiAotLambda
             });
 
             httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/todos",
+                Path = "/api/me",
                 Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
                 Integration = deckcheckApiLambda
             });
@@ -99,6 +131,16 @@ namespace MtgDecklistsCdk
 
             httpApi.AddRoutes(new AddRoutesOptions {
                 Path = "/api/events/{proxy+}",
+                Methods = new [] { 
+                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET,
+                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.DELETE,
+                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST
+                },
+                Integration = deckcheckApiLambda
+            });
+
+            httpApi.AddRoutes(new AddRoutesOptions {
+                Path = "/api/decks/{proxy+}",
                 Methods = new [] { 
                     Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET,
                     Amazon.CDK.AWS.Apigatewayv2.HttpMethod.DELETE,
