@@ -74,6 +74,7 @@ namespace MtgDecklistsCdk
             
             resourceStack.ScryfallDdbTable.GrantReadData(decklistApiAotImageFunction.Role);
             resourceStack.ScryfallDdbTable.Grant(decklistApiAotImageFunction.Role, "dynamodb:PartiQLSelect");
+            
             resourceStack.DecklistApiUsersDdbTable.GrantReadWriteData(decklistApiAotImageFunction.Role);
             resourceStack.DecklistApiEventsDdbTable.GrantReadWriteData(decklistApiAotImageFunction.Role);
             resourceStack.DecklistApiDecksDdbTable.GrantReadWriteData(decklistApiAotImageFunction.Role);
