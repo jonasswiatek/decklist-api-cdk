@@ -26,10 +26,10 @@ namespace MtgDecklistsCdk
                 Description = "Executes docker image containing the asp.net code for the API",
                 Code = DockerImageCode.FromEcr(resourceStack.EcrRepo, new EcrImageCodeProps
                 {
-                    TagOrDigest = Program.DecklistApiImageTag
+                    TagOrDigest = Program.DecklistApiAotImageTag
                 }),
                 Timeout = Duration.Seconds(10),
-                MemorySize = 512,
+                MemorySize = 256,
                 Tracing = Tracing.ACTIVE,
             });
 
