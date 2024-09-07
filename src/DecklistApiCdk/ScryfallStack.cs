@@ -11,6 +11,10 @@ using MtgDecklistsCdk;
 
 namespace DecklistApiCdk
 {
+    /// <summary>
+    /// The reader function can be invoked with
+    /// aws lambda invoke --function-name scryfall-reader --payload '{ "LookbackDays": 20000 }' --cli-binary-format raw-in-base64-out response.json --profile decklist-api-prod
+    /// </summary>
     public class ScryfallStack : Stack
     {
         internal ScryfallStack(ResourceStack resourceStack, Construct scope, string id, IStackProps props = null) : base(scope, id, props)
@@ -33,7 +37,7 @@ namespace DecklistApiCdk
                     { "sqs_queue_url", queue.QueueUrl }
                 },
                 Timeout = Duration.Seconds(120),
-                MemorySize = 512
+                MemorySize = 256
             });
 
             queue.GrantSendMessages(scryfallReaderImageFunction.Role);
