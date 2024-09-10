@@ -131,6 +131,7 @@ namespace MtgDecklistsCdk
                 DefaultRootObject = "index.html",
                 Certificate = use1ResourceStack.TlsCertificateForCloudFront,
                 DomainNames = new[]{ Program.DomainName },
+                PriceClass = PriceClass.PRICE_CLASS_100,
                 DefaultBehavior = new BehaviorOptions {
                     Origin = new S3Origin(resourceStack.WebsiteS3Bucket, new S3OriginProps {
                         OriginId = "decklist-api-website-s3-bucket",
