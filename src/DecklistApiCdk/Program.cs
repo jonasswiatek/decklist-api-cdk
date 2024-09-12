@@ -10,8 +10,7 @@ namespace MtgDecklistsCdk
     {
         public static readonly string DomainName = "decklist.lol";
 
-        public static readonly string DecklistApiImageTag     = "DecklistApi.Web-1";
-        public static readonly string DecklistApiAotImageTag  = "DecklistApi.Web.Aot-9";
+        public static readonly string DecklistApiAotImageTag  = "DecklistApi.Web.Aot-1";
         public static readonly string DecklistWebsiteVersion  = "v1.0.1";
         public static readonly string ScryfalllReaderImageTag = "DecklistApi.ScryfallReader-1";
 

@@ -107,16 +107,6 @@ namespace MtgDecklistsCdk
                 Integration = deckcheckApiLambda
             });
 
-            httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/decks/{proxy+}",
-                Methods = new [] { 
-                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET,
-                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.DELETE,
-                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST
-                },
-                Integration = deckcheckApiLambda
-            });
-
             //A cloudfront function that will rewrite certain paths to request index.html.
             var reactRouterFunction = new Amazon.CDK.AWS.CloudFront.Function(this, "decklist-cloudfront-function-react-router", new Amazon.CDK.AWS.CloudFront.FunctionProps {
                 Code = FunctionCode.FromFile(new FileCodeOptions {
