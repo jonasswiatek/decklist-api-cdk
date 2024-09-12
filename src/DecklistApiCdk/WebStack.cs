@@ -120,7 +120,7 @@ namespace MtgDecklistsCdk
             var cloudfrontDistribution = new Distribution(this, "decklist-cloudfront-distribution", new DistributionProps {
                 DefaultRootObject = "index.html",
                 Certificate = use1ResourceStack.TlsCertificateForCloudFront,
-                DomainNames = new[]{ Program.DomainName },
+                DomainNames = new[]{ Program.DomainName, $"www.{Program.DomainName}" },
                 PriceClass = PriceClass.PRICE_CLASS_100,
                 DefaultBehavior = new BehaviorOptions {
                     Origin = new S3Origin(resourceStack.WebsiteS3Bucket, new S3OriginProps {

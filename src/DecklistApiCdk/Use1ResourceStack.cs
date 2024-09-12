@@ -14,6 +14,7 @@ namespace DecklistApiCdk
         {
             TlsCertificateForCloudFront = new Certificate(this, "decklist-tls-cert-use1", new CertificateProps {
                 DomainName = Program.DomainName,
+                SubjectAlternativeNames = new [] { $"www.{Program.DomainName}" },
                 Validation = CertificateValidation.FromDns(resourceStack.decklist_lol_publicHostedZone)
             });
         }
