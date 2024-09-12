@@ -166,6 +166,12 @@ namespace MtgDecklistsCdk
                 Zone = resourceStack.decklist_lol_publicHostedZone,
                 Target = RecordTarget.FromAlias(new CloudFrontTarget(cloudfrontDistribution))
             });
+
+            new ARecord(this, "decklist-lol-cloudfront-alias-www", new ARecordProps {
+                RecordName = "www",
+                Zone = resourceStack.decklist_lol_publicHostedZone,
+                Target = RecordTarget.FromAlias(new CloudFrontTarget(cloudfrontDistribution))
+            });
         }
     }
 }
