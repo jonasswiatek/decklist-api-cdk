@@ -21,7 +21,7 @@ namespace DecklistApiCdk
         public TableV2 DecklistApiEventsDdbTable;
         public TableV2 DecklistApiDecksDdbTable;
 
-        public PublicHostedZone decklist_lol_publicHostedZone;
+        public IHostedZone decklist_lol_publicHostedZone;
 
         internal ResourceStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
@@ -111,7 +111,8 @@ namespace DecklistApiCdk
 
             WebsiteS3Bucket.GrantRead(WebsiteS3BucketOai);
 
-            decklist_lol_publicHostedZone = new PublicHostedZone(this, "decklist-hostedzone", new PublicHostedZoneProps {
+            decklist_lol_publicHostedZone = HostedZone.FromHostedZoneAttributes(this, "decklist-public-hosted-zone", new HostedZoneAttributes {
+                HostedZoneId = "Z0023525188L7JL55G3HG",
                 ZoneName = Program.DomainName
             });
 
