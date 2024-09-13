@@ -74,8 +74,7 @@ namespace MtgDecklistsCdk
                     Repo = "decklist-website",
                 }),
                 Environment = new BuildEnvironment {
-                    ComputeType = ComputeType.SMALL,
-                    BuildImage = LinuxBuildImage.STANDARD_5_0
+                    BuildImage = LinuxLambdaBuildImage.AMAZON_LINUX_2023_NODE_20
                 },
                 BuildSpec = BuildSpec.FromObject(new Dictionary<string, object> {
                     { "version", "0.2" },
@@ -85,7 +84,6 @@ namespace MtgDecklistsCdk
                             {
                                 { "Commands", new []
                                     {
-                                        "n 22",
                                         "cd src",
                                         "npm install",
                                     } 
