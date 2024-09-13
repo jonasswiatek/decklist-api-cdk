@@ -123,10 +123,10 @@ namespace MtgDecklistsCdk
                 DomainNames = new[]{ Program.DomainName, $"www.{Program.DomainName}" },
                 PriceClass = PriceClass.PRICE_CLASS_100,
                 DefaultBehavior = new BehaviorOptions {
-                    Origin = new S3Origin(resourceStack.WebsiteS3Bucket, new S3OriginProps {
+                    Origin = S3BucketOrigin.WithOriginAccessIdentity(resourceStack.WebsiteS3Bucket, new S3BucketOriginWithOAIProps {
+                        OriginAccessIdentity = resourceStack.WebsiteS3BucketOai,
                         OriginId = "decklist-api-website-s3-bucket",
                         OriginPath = Program.DecklistWebsiteVersion,
-                        OriginAccessIdentity = resourceStack.WebsiteS3BucketOai,
                     }),
                     AllowedMethods = AllowedMethods.ALLOW_GET_HEAD,
                     ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -135,8 +135,8 @@ namespace MtgDecklistsCdk
                         Comment = "Policy optimized for a react native app that rarely changes",
                         EnableAcceptEncodingBrotli = true,
                         EnableAcceptEncodingGzip = true,
-                        DefaultTtl = Duration.Seconds(10),
-                        MaxTtl = Duration.Seconds(10),
+                        DefaultTtl = Duration.Seconds(60),
+                        MaxTtl = Duration.Minutes(10),
                         MinTtl = Duration.Seconds(0)
                     }),
                     FunctionAssociations = new []{
