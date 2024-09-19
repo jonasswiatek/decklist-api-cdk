@@ -18,7 +18,8 @@ namespace MtgDecklistsCdk
                 }),
                 Environment = new BuildEnvironment {
                     ComputeType = ComputeType.SMALL,
-                    BuildImage = LinuxBuildImage.STANDARD_5_0
+                    //BuildImage = LinuxBuildImage.STANDARD_7_0,
+                    BuildImage = LinuxBuildImage.AMAZON_LINUX_2_ARM_3
                 },
                 EnvironmentVariables = new Dictionary<string, IBuildEnvironmentVariable>()
                 {

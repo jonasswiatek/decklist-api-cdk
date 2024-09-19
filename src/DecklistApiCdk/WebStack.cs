@@ -28,6 +28,7 @@ namespace MtgDecklistsCdk
                 {
                     TagOrDigest = Program.DecklistApiAotImageTag
                 }),
+                Architecture = Architecture.ARM_64,
                 Timeout = Duration.Seconds(10),
                 MemorySize = 256,
                 Tracing = Tracing.ACTIVE,
