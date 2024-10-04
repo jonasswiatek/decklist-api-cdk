@@ -47,7 +47,7 @@ namespace DecklistApiCdk
                 RuleName = "scryfall-scrape-schedule",
                 Enabled = true,
                 Schedule = Schedule.Cron(new CronOptions {
-                    WeekDay = "Thursday",
+                    WeekDay = "Friday",
                     Hour = "12",
                     Minute = "00",
                 })
@@ -56,7 +56,7 @@ namespace DecklistApiCdk
             rule.AddTarget(new LambdaFunction(scryfallReaderImageFunction, new LambdaFunctionProps {
                 Event = RuleTargetInput.FromObject(
                     new Dictionary<string, int> {
-                        { "LookbackDays", 60 }
+                        { "LookbackDays", 30 }
                     }
                 )
             }));
