@@ -2,14 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Amazon.CDK;
-using Amazon.CDK.AWS.Apigatewayv2;
 using Amazon.CDK.AWS.CloudFront;
 using Amazon.CDK.AWS.CloudFront.Origins;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
-using Amazon.CDK.AwsApigatewayv2Integrations;
 using Constructs;
 using DecklistApiCdk;
 
@@ -34,6 +32,11 @@ namespace MtgDecklistsCdk
                 Tracing = Tracing.ACTIVE,
             });
 
+            var lambdaFunctionUrl = decklistApiImageFunction.AddFunctionUrl(new FunctionUrlOptions {
+                AuthType = FunctionUrlAuthType.NONE,
+                InvokeMode = InvokeMode.BUFFERED
+            });
+
             //Allow it's assigned role to pull from the ECR repo containing the image
             resourceStack.EcrRepo.GrantPull(decklistApiImageFunction.Role);
             
@@ -50,63 +53,6 @@ namespace MtgDecklistsCdk
             resourceStack.DecklistApiDecksDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
 
             decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "decklist-api-lambda-xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
-
-            //Wrap as an HttpLambdaIntegration object that API Gateway understands.
-            var deckcheckApiLambda = new HttpLambdaIntegration("decklist-api-gateway-lambda-integration", decklistApiImageFunction);
-
-            //The API Gateway itself, configured as Http API
-            var httpApi = new HttpApi(this, "decklist-api-gateway", new HttpApiProps { });
-
-            //And the associated routes which are all configured explicitly.
-            httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/login/start",
-                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST },
-                Integration = deckcheckApiLambda
-            });
-
-            httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/login/continue",
-                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST },
-                Integration = deckcheckApiLambda
-            });
-
-            httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/logout",
-                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST },
-                Integration = deckcheckApiLambda
-            });
-
-            httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/cards/search",
-                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
-                Integration = deckcheckApiLambda
-            });
-
-            httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/me",
-                Methods = new [] { Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET },
-                Integration = deckcheckApiLambda
-            });
-
-            httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/events",
-                Methods = new [] { 
-                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET,
-                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.DELETE,
-                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST
-                },
-                Integration = deckcheckApiLambda
-            });
-
-            httpApi.AddRoutes(new AddRoutesOptions {
-                Path = "/api/events/{proxy+}",
-                Methods = new [] { 
-                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.GET,
-                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.DELETE,
-                    Amazon.CDK.AWS.Apigatewayv2.HttpMethod.POST
-                },
-                Integration = deckcheckApiLambda
-            });
 
             //A cloudfront function that will rewrite certain paths to request index.html.
             var reactRouterFunction = new Amazon.CDK.AWS.CloudFront.Function(this, "decklist-cloudfront-function-react-router", new Amazon.CDK.AWS.CloudFront.FunctionProps {
@@ -151,14 +97,12 @@ namespace MtgDecklistsCdk
                     { "/api/*", new BehaviorOptions {
                         CachePolicy = CachePolicy.CACHING_DISABLED,
                         AllowedMethods = AllowedMethods.ALLOW_ALL,
-                        Origin = new HttpOrigin($"{httpApi.HttpApiId}.execute-api.{Region}.amazonaws.com", new HttpOriginProps {
-                            OriginId = "decklist-api-gateway",
-                        }),
+                        Origin = new FunctionUrlOrigin(lambdaFunctionUrl),
                         ViewerProtocolPolicy = ViewerProtocolPolicy.HTTPS_ONLY,
                         OriginRequestPolicy = new OriginRequestPolicy(this, "decklist-api-cf-behavior", new OriginRequestPolicyProps {
                             CookieBehavior = OriginRequestCookieBehavior.AllowList("decklist-api-auth"),
                             QueryStringBehavior = OriginRequestQueryStringBehavior.AllowList("q")
-                        })
+                        }),
                     }}
                 }
             });
