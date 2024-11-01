@@ -15,7 +15,6 @@ namespace DecklistApiCdk
         public Repository EcrRepo;
 
         public Bucket WebsiteS3Bucket;
-        public OriginAccessIdentity WebsiteS3BucketOai;
 
         public TableV2 ScryfallDdbTable;
         public TableV2 DecklistApiUsersDdbTable;
@@ -92,25 +91,12 @@ namespace DecklistApiCdk
                 RemovalPolicy = RemovalPolicy.RETAIN
             });
 
-            WebsiteS3BucketOai = new OriginAccessIdentity(this, "decklist-website-cloudfront-oai", new OriginAccessIdentityProps {
-                Comment = "OAI for decklist-api s3 access"
-            });
-
             WebsiteS3Bucket = new Bucket(this, "decklist-api-website-s3-bucket", new BucketProps {
                 BucketName = "decklist-api-website",
                 BlockPublicAccess = BlockPublicAccess.BLOCK_ALL,
-                Cors = new [] {
-                    new CorsRule {
-                        AllowedMethods = new[]{ HttpMethods.GET, HttpMethods.HEAD },
-                        AllowedOrigins = new[]{ "*" },
-                        AllowedHeaders = new[]{ "*" },
-                        MaxAge = 300
-                    }
-                },
+                EnforceSSL = true,
                 RemovalPolicy = RemovalPolicy.RETAIN
             });
-
-            WebsiteS3Bucket.GrantRead(WebsiteS3BucketOai);
 
             decklist_lol_publicHostedZone = HostedZone.FromHostedZoneAttributes(this, "decklist-public-hosted-zone", new HostedZoneAttributes {
                 HostedZoneId = "Z0023525188L7JL55G3HG",

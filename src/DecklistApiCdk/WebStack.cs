@@ -8,6 +8,7 @@ using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
+using Amazon.CDK.AWS.S3;
 using Constructs;
 using DecklistApiCdk;
 
@@ -64,17 +65,30 @@ namespace MtgDecklistsCdk
                 AutoPublish = true
             });
 
+            resourceStack.WebsiteS3Bucket.Policy = new BucketPolicy(this, "decklist-website-bucket-policy", new BucketPolicyProps {
+                RemovalPolicy = RemovalPolicy.DESTROY,
+                Bucket = resourceStack.WebsiteS3Bucket,
+            });
+
+            var cfBucketAccessControl = new S3OriginAccessControl(this, "decklist-website-cloudfront-oac", new S3OriginAccessControlProps {
+                Signing = Signing.SIGV4_NO_OVERRIDE,
+                OriginAccessControlName = "decklist-website-s3-oac",
+                Description = "Allows access from Cloudfront to website bucket"
+            });
+
+            var s3Origin = S3BucketOrigin.WithOriginAccessControl(resourceStack.WebsiteS3Bucket, new S3BucketOriginWithOACProps {
+                OriginAccessControl = cfBucketAccessControl,
+                OriginId = "decklist-website-s3-bucket",
+                OriginPath = Program.DecklistWebsiteVersion,
+            });
+
             var cloudfrontDistribution = new Distribution(this, "decklist-cloudfront-distribution", new DistributionProps {
                 DefaultRootObject = "index.html",
                 Certificate = use1ResourceStack.TlsCertificateForCloudFront,
                 DomainNames = new[]{ Program.DomainName, $"www.{Program.DomainName}" },
                 PriceClass = PriceClass.PRICE_CLASS_100,
                 DefaultBehavior = new BehaviorOptions {
-                    Origin = S3BucketOrigin.WithOriginAccessIdentity(resourceStack.WebsiteS3Bucket, new S3BucketOriginWithOAIProps {
-                        OriginAccessIdentity = resourceStack.WebsiteS3BucketOai,
-                        OriginId = "decklist-api-website-s3-bucket",
-                        OriginPath = Program.DecklistWebsiteVersion,
-                    }),
+                    Origin = s3Origin,
                     AllowedMethods = AllowedMethods.ALLOW_GET_HEAD,
                     ViewerProtocolPolicy = ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
                     CachePolicy = new CachePolicy(this, "decklist-website-cache-policy", new CachePolicyProps {
