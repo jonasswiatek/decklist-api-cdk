@@ -115,7 +115,7 @@ namespace MtgDecklistsCdk
                         ViewerProtocolPolicy = ViewerProtocolPolicy.HTTPS_ONLY,
                         OriginRequestPolicy = new OriginRequestPolicy(this, "decklist-api-cf-behavior", new OriginRequestPolicyProps {
                             CookieBehavior = OriginRequestCookieBehavior.AllowList("decklist-api-auth"),
-                            QueryStringBehavior = OriginRequestQueryStringBehavior.AllowList("q")
+                            QueryStringBehavior = OriginRequestQueryStringBehavior.AllowList("q", "user_id")
                         }),
                     }}
                 }
