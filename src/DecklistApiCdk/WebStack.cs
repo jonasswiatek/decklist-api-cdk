@@ -9,6 +9,7 @@ using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
 using Amazon.CDK.AWS.S3;
+using Amazon.CDK.AWS.SSM;
 using Constructs;
 using DecklistApiCdk;
 
@@ -32,6 +33,22 @@ namespace MtgDecklistsCdk
                 MemorySize = 256,
                 Tracing = Tracing.ACTIVE,
             });
+
+            new StringParameter(this, "DecklistApiSendKeyApiKeyParameter", new StringParameterProps
+            {
+                ParameterName = "/decklist-api/config/sendgrid-email-api-key",
+                StringValue = "insert-value",
+                Description = "Sendgrid key",
+                Tier = ParameterTier.STANDARD,
+            }).GrantRead(decklistApiImageFunction.Role);
+
+            new StringParameter(this, "DecklistApiGoogleClientIdParameter", new StringParameterProps
+            {
+                ParameterName = "/decklist-api/config/google-client-id",
+                StringValue = "insert-value",
+                Description = "Google CliendId key",
+                Tier = ParameterTier.STANDARD,
+            }).GrantRead(decklistApiImageFunction.Role);
 
             var lambdaFunctionUrl = decklistApiImageFunction.AddFunctionUrl(new FunctionUrlOptions {
                 AuthType = FunctionUrlAuthType.NONE,
@@ -114,6 +131,7 @@ namespace MtgDecklistsCdk
                         Origin = new FunctionUrlOrigin(lambdaFunctionUrl),
                         ViewerProtocolPolicy = ViewerProtocolPolicy.HTTPS_ONLY,
                         OriginRequestPolicy = new OriginRequestPolicy(this, "decklist-api-cf-behavior", new OriginRequestPolicyProps {
+                            OriginRequestPolicyName = "decklist-api-origin-request-policy",
                             CookieBehavior = OriginRequestCookieBehavior.AllowList("decklist-api-auth"),
                             QueryStringBehavior = OriginRequestQueryStringBehavior.AllowList("q", "user_id")
                         }),

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <!-- Roll forward to future major versions of the netcoreapp as needed -->
     <RollForward>Major</RollForward>
   </PropertyGroup>
@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <!-- CDK Construct Library dependencies -->
-    <PackageReference Include="Amazon.CDK.Lib" Version="2.174.0" />
+    <PackageReference Include="Amazon.CDK.Lib" Version="2.185.0" />
     <PackageReference Include="Constructs" Version="10.4.2" />
 
     <!-- jsii Roslyn analyzers (un-comment to obtain compile-time checks for missing required props

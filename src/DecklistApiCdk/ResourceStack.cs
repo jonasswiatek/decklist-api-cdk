@@ -31,10 +31,12 @@ namespace DecklistApiCdk
                 PartitionKey = new Attribute { Name = "first_letter", Type = AttributeType.STRING },
                 SortKey = new Attribute { Name = "card_name_sort", Type = AttributeType.STRING },
 
+                /*
                 Billing = Billing.Provisioned(new ThroughputProps {
                     ReadCapacity = Capacity.Fixed(12),
                     WriteCapacity = Capacity.Autoscaled(new AutoscaledCapacityOptions { MaxCapacity = 10, SeedCapacity = 5, MinCapacity = 5 })
                 }),
+                */
 
                 TableClass = TableClass.STANDARD,
                 RemovalPolicy = RemovalPolicy.RETAIN

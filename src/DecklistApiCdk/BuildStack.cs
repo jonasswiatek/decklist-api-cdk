@@ -17,7 +17,7 @@ namespace MtgDecklistsCdk
                     Repo = "decklist-api",
                 }),
                 Environment = new BuildEnvironment {
-                    ComputeType = ComputeType.SMALL,
+                    ComputeType = ComputeType.MEDIUM,
                     BuildImage = LinuxBuildImage.AMAZON_LINUX_2_ARM_3
                 },
                 EnvironmentVariables = new Dictionary<string, IBuildEnvironmentVariable>()

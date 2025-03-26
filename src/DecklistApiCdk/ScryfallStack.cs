@@ -13,7 +13,7 @@ namespace DecklistApiCdk
 {
     /// <summary>
     /// The reader function can be invoked with
-    /// aws lambda invoke --function-name scryfall-reader --payload '{ "LookbackDays": 20000 }' --cli-binary-format raw-in-base64-out response.json --profile decklist-api-prod
+    /// aws lambda invoke --function-name scryfall-reader --payload '{ "LookbackDays": 20000 }' --cli-binary-format raw-in-base64-out response.json --profile decklist
     /// </summary>
     public class ScryfallStack : Stack
     {
