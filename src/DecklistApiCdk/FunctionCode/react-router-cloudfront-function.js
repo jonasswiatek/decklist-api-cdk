@@ -5,7 +5,12 @@ function handler(event) {
     {
         request.uri = "/index.html";
         request.querystring = {}
+    } else if (request.uri.startsWith('/help'))
+    {
+        request.uri = "/index.html";
+        request.querystring = {}
     }
+    
 
     return request;
 }
