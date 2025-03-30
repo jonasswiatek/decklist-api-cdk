@@ -79,7 +79,8 @@ namespace MtgDecklistsCdk
             resourceStack.DecklistApiDecksDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
 
             decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "decklist-api-lambda-xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
-
+            resourceStack.EmailIdentity.GrantSendEmail(decklistApiImageFunction.Role);
+            
             //A cloudfront function that will rewrite certain paths to request index.html.
             var reactRouterFunction = new Amazon.CDK.AWS.CloudFront.Function(this, "decklist-cloudfront-function-react-router", new Amazon.CDK.AWS.CloudFront.FunctionProps {
                 Code = FunctionCode.FromFile(new FileCodeOptions {

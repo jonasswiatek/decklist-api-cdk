@@ -21,6 +21,7 @@ namespace DecklistApiCdk
         public TableV2 DecklistApiDecksDdbTable;
 
         public IHostedZone decklist_lol_publicHostedZone;
+        public EmailIdentity EmailIdentity;
 
         internal ResourceStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
@@ -148,29 +149,30 @@ namespace DecklistApiCdk
 
 
             //AWS SES
-            var identity = new EmailIdentity(this, "Identity", new EmailIdentityProps {
+            EmailIdentity = new EmailIdentity(this, "Identity", new EmailIdentityProps {
                 Identity = Identity.Domain(Program.DomainName),
                 MailFromDomain = "mail.decklist.lol",
             });
+            
 
             new CnameRecord(this, "decklist-lol-ses-dkim-1", new CnameRecordProps {
                 Zone = decklist_lol_publicHostedZone,
-                RecordName = Fn.Select(0, Fn.Split($".{Program.DomainName}", identity.DkimDnsTokenName1)),
-                DomainName = identity.DkimDnsTokenValue1,
+                RecordName = Fn.Select(0, Fn.Split($".{Program.DomainName}", EmailIdentity.DkimDnsTokenName1)),
+                DomainName = EmailIdentity.DkimDnsTokenValue1,
                 Ttl = Duration.Hours(3)
             });
 
             new CnameRecord(this, "decklist-lol-ses-dkim-2", new CnameRecordProps {
                 Zone = decklist_lol_publicHostedZone,
-                RecordName = Fn.Select(0, Fn.Split($".{Program.DomainName}", identity.DkimDnsTokenName2)),
-                DomainName = identity.DkimDnsTokenValue2,
+                RecordName = Fn.Select(0, Fn.Split($".{Program.DomainName}", EmailIdentity.DkimDnsTokenName2)),
+                DomainName = EmailIdentity.DkimDnsTokenValue2,
                 Ttl = Duration.Hours(3)
             });
 
             new CnameRecord(this, "decklist-lol-ses-dkim-3", new CnameRecordProps {
                 Zone = decklist_lol_publicHostedZone,
-                RecordName = Fn.Select(0, Fn.Split($".{Program.DomainName}", identity.DkimDnsTokenName3)),
-                DomainName = identity.DkimDnsTokenValue3,
+                RecordName = Fn.Select(0, Fn.Split($".{Program.DomainName}", EmailIdentity.DkimDnsTokenName3)),
+                DomainName = EmailIdentity.DkimDnsTokenValue3,
                 Ttl = Duration.Hours(3)
             });
 
