@@ -50,6 +50,14 @@ namespace MtgDecklistsCdk
                 Tier = ParameterTier.STANDARD,
             }).GrantRead(decklistApiImageFunction.Role);
 
+            new StringParameter(this, "DecklistApiEmailHashPepperParameter", new StringParameterProps
+            {
+                ParameterName = "/decklist-api/config/email-hash-pepper",
+                StringValue = "insert-value",
+                Description = "Pepper value for email hashing",
+                Tier = ParameterTier.STANDARD,
+            }).GrantRead(decklistApiImageFunction.Role);
+
             var lambdaFunctionUrl = decklistApiImageFunction.AddFunctionUrl(new FunctionUrlOptions {
                 AuthType = FunctionUrlAuthType.NONE,
                 InvokeMode = InvokeMode.BUFFERED

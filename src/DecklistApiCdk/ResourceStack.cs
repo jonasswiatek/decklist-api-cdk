@@ -1,10 +1,9 @@
 using Amazon.CDK;
-using Amazon.CDK.AWS.CloudFront;
-using Amazon.CDK.AWS.CloudFront.Origins;
 using Amazon.CDK.AWS.DynamoDB;
 using Amazon.CDK.AWS.ECR;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.S3;
+using Amazon.CDK.AWS.SES;
 using Constructs;
 using MtgDecklistsCdk;
 
@@ -104,7 +103,7 @@ namespace DecklistApiCdk
                 HostedZoneId = "Z0023525188L7JL55G3HG",
                 ZoneName = Program.DomainName
             });
-
+            
             new CnameRecord(this, "decklist-lol-sg-cname-em7133", new CnameRecordProps {
                 Zone = decklist_lol_publicHostedZone,
                 RecordName = "em7133",
@@ -144,6 +143,48 @@ namespace DecklistApiCdk
                 Zone = decklist_lol_publicHostedZone,
                 RecordName = "46110892",
                 DomainName = "sendgrid.net",
+                Ttl = Duration.Hours(3)
+            });
+
+
+            //AWS SES
+            var identity = new EmailIdentity(this, "Identity", new EmailIdentityProps {
+                Identity = Identity.Domain(Program.DomainName),
+                MailFromDomain = "mail.decklist.lol",
+            });
+
+            new CnameRecord(this, "decklist-lol-ses-dkim-1", new CnameRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = Fn.Select(0, Fn.Split($".{Program.DomainName}", identity.DkimDnsTokenName1)),
+                DomainName = identity.DkimDnsTokenValue1,
+                Ttl = Duration.Hours(3)
+            });
+
+            new CnameRecord(this, "decklist-lol-ses-dkim-2", new CnameRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = Fn.Select(0, Fn.Split($".{Program.DomainName}", identity.DkimDnsTokenName2)),
+                DomainName = identity.DkimDnsTokenValue2,
+                Ttl = Duration.Hours(3)
+            });
+
+            new CnameRecord(this, "decklist-lol-ses-dkim-3", new CnameRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = Fn.Select(0, Fn.Split($".{Program.DomainName}", identity.DkimDnsTokenName3)),
+                DomainName = identity.DkimDnsTokenValue3,
+                Ttl = Duration.Hours(3)
+            });
+
+            new MxRecord(this, "decklist-lol-ses-mx", new MxRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = "mail",
+                Values = new [] { new MxRecordValue { Priority = 10, HostName = "feedback-smtp.eu-central-1.amazonses.com" } },
+                Ttl = Duration.Hours(3)
+            });
+            
+            new TxtRecord(this, "decklist-lol-ses-txt", new TxtRecordProps {
+                Zone = decklist_lol_publicHostedZone,
+                RecordName = "mail",
+                Values = new [] { $"v=spf1 include:amazonses.com ~all" },
                 Ttl = Duration.Hours(3)
             });
         }
