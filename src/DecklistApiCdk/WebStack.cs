@@ -80,7 +80,7 @@ namespace MtgDecklistsCdk
 
             decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "decklist-api-lambda-xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
             resourceStack.EmailIdentity.GrantSendEmail(decklistApiImageFunction.Role);
-            
+
             //A cloudfront function that will rewrite certain paths to request index.html.
             var reactRouterFunction = new Amazon.CDK.AWS.CloudFront.Function(this, "decklist-cloudfront-function-react-router", new Amazon.CDK.AWS.CloudFront.FunctionProps {
                 Code = FunctionCode.FromFile(new FileCodeOptions {
@@ -91,8 +91,9 @@ namespace MtgDecklistsCdk
                 AutoPublish = true
             });
 
+            //See https://github.com/aws/aws-cdk/issues/31462
             resourceStack.WebsiteS3Bucket.Policy = new BucketPolicy(this, "decklist-website-bucket-policy", new BucketPolicyProps {
-                RemovalPolicy = RemovalPolicy.DESTROY,
+                RemovalPolicy = RemovalPolicy.RETAIN,
                 Bucket = resourceStack.WebsiteS3Bucket,
             });
 
