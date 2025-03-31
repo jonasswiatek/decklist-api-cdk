@@ -4,6 +4,7 @@ using Amazon.CDK.AWS.ECR;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.S3;
 using Amazon.CDK.AWS.SES;
+using Amazon.CDK.AWS.SSM;
 using Constructs;
 using MtgDecklistsCdk;
 
@@ -22,6 +23,10 @@ namespace DecklistApiCdk
 
         public IHostedZone decklist_lol_publicHostedZone;
         public EmailIdentity EmailIdentity;
+
+        public StringParameter googleSigninClientIdParameter;
+        public StringParameter sendgridApiKeyParameter;
+        public StringParameter emailHashPepperParameter;
 
         internal ResourceStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
@@ -98,6 +103,30 @@ namespace DecklistApiCdk
                 BlockPublicAccess = BlockPublicAccess.BLOCK_ALL,
                 EnforceSSL = true,
                 RemovalPolicy = RemovalPolicy.RETAIN
+            });
+
+            sendgridApiKeyParameter = new StringParameter(this, "DecklistApiSendKeyApiKeyParameter", new StringParameterProps
+            {
+                ParameterName = "/decklist-api/config/sendgrid-email-api-key",
+                StringValue = "insert-value",
+                Description = "Sendgrid key",
+                Tier = ParameterTier.STANDARD,
+            });
+
+            googleSigninClientIdParameter = new StringParameter(this, "DecklistApiGoogleClientIdParameter", new StringParameterProps
+            {
+                ParameterName = "/decklist-api/config/google-client-id",
+                StringValue = "insert-value",
+                Description = "Google CliendId key",
+                Tier = ParameterTier.STANDARD,
+            });
+
+            emailHashPepperParameter = new StringParameter(this, "DecklistApiEmailHashPepperParameter", new StringParameterProps
+            {
+                ParameterName = "/decklist-api/config/email-hash-pepper",
+                StringValue = "insert-value",
+                Description = "Pepper value for email hashing",
+                Tier = ParameterTier.STANDARD,
             });
 
             decklist_lol_publicHostedZone = HostedZone.FromHostedZoneAttributes(this, "decklist-public-hosted-zone", new HostedZoneAttributes {

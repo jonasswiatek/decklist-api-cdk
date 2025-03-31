@@ -34,29 +34,9 @@ namespace MtgDecklistsCdk
                 Tracing = Tracing.ACTIVE,
             });
 
-            new StringParameter(this, "DecklistApiSendKeyApiKeyParameter", new StringParameterProps
-            {
-                ParameterName = "/decklist-api/config/sendgrid-email-api-key",
-                StringValue = "insert-value",
-                Description = "Sendgrid key",
-                Tier = ParameterTier.STANDARD,
-            }).GrantRead(decklistApiImageFunction.Role);
-
-            new StringParameter(this, "DecklistApiGoogleClientIdParameter", new StringParameterProps
-            {
-                ParameterName = "/decklist-api/config/google-client-id",
-                StringValue = "insert-value",
-                Description = "Google CliendId key",
-                Tier = ParameterTier.STANDARD,
-            }).GrantRead(decklistApiImageFunction.Role);
-
-            new StringParameter(this, "DecklistApiEmailHashPepperParameter", new StringParameterProps
-            {
-                ParameterName = "/decklist-api/config/email-hash-pepper",
-                StringValue = "insert-value",
-                Description = "Pepper value for email hashing",
-                Tier = ParameterTier.STANDARD,
-            }).GrantRead(decklistApiImageFunction.Role);
+            resourceStack.sendgridApiKeyParameter.GrantRead(decklistApiImageFunction.Role);
+            resourceStack.googleSigninClientIdParameter.GrantRead(decklistApiImageFunction.Role);
+            resourceStack.emailHashPepperParameter.GrantRead(decklistApiImageFunction.Role);
 
             var lambdaFunctionUrl = decklistApiImageFunction.AddFunctionUrl(new FunctionUrlOptions {
                 AuthType = FunctionUrlAuthType.NONE,
