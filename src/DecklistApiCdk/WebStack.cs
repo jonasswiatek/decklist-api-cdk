@@ -123,7 +123,7 @@ namespace MtgDecklistsCdk
                         OriginRequestPolicy = new OriginRequestPolicy(this, "decklist-api-cf-behavior", new OriginRequestPolicyProps {
                             OriginRequestPolicyName = "decklist-api-origin-request-policy",
                             CookieBehavior = OriginRequestCookieBehavior.AllowList("decklist-api-auth"),
-                            QueryStringBehavior = OriginRequestQueryStringBehavior.AllowList("q", "user_id")
+                            QueryStringBehavior = OriginRequestQueryStringBehavior.AllowList("q", "user_id", "eventId")
                         }),
                     }}
                 }

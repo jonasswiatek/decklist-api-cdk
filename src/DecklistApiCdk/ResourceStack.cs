@@ -83,10 +83,10 @@ namespace DecklistApiCdk
                 TimeToLiveAttribute = "__expires_ttl",
 
                 Billing = Billing.Provisioned(new ThroughputProps {
-                    ReadCapacity = Capacity.Fixed(13),
-                    WriteCapacity = Capacity.Autoscaled(new AutoscaledCapacityOptions { MaxCapacity = 15, SeedCapacity = 5, MinCapacity = 10 })
+                    ReadCapacity = Capacity.Fixed(25),
+                    WriteCapacity = Capacity.Autoscaled(new AutoscaledCapacityOptions { MaxCapacity = 25, SeedCapacity = 25, MinCapacity = 25 })
                 }),
-
+                
                 TableClass = TableClass.STANDARD,
                 RemovalPolicy = RemovalPolicy.RETAIN
             });
