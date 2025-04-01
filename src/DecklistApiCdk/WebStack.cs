@@ -31,12 +31,13 @@ namespace MtgDecklistsCdk
                 Architecture = Architecture.ARM_64,
                 Timeout = Duration.Seconds(10),
                 MemorySize = 256,
-                Tracing = Tracing.ACTIVE,
+                Tracing = Tracing.ACTIVE
             });
 
             resourceStack.sendgridApiKeyParameter.GrantRead(decklistApiImageFunction.Role);
             resourceStack.googleSigninClientIdParameter.GrantRead(decklistApiImageFunction.Role);
             resourceStack.emailHashPepperParameter.GrantRead(decklistApiImageFunction.Role);
+            resourceStack.jwtSecretKeyParameter.GrantRead(decklistApiImageFunction.Role);
 
             var lambdaFunctionUrl = decklistApiImageFunction.AddFunctionUrl(new FunctionUrlOptions {
                 AuthType = FunctionUrlAuthType.NONE,
