@@ -9,7 +9,6 @@ using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.Route53;
 using Amazon.CDK.AWS.Route53.Targets;
 using Amazon.CDK.AWS.S3;
-using Amazon.CDK.AWS.SSM;
 using Constructs;
 using DecklistApiCdk;
 
