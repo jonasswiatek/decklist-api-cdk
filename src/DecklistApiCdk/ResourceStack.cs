@@ -141,7 +141,7 @@ namespace DecklistApiCdk
 
             jwtEncryptionKeyParameter = new StringParameter(this, "DecklistApiJwtEncryptionKeyParameter", new StringParameterProps
             {
-                ParameterName = "jwt-encryption-key",
+                ParameterName = "/decklist-api/config/jwt-encryption-key",
                 StringValue = "insert-value",
                 Description = "JWT Encryption KEy",
                 Tier = ParameterTier.STANDARD,
