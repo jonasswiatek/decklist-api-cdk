@@ -27,7 +27,7 @@ namespace DecklistApiCdk
         public StringParameter googleSigninClientIdParameter;
         public StringParameter sendgridApiKeyParameter;
         public StringParameter emailHashPepperParameter;
-        public StringParameter jwtSecretKeyParameter;
+        public StringParameter jwtSigningKeyParameter;
         public StringParameter jwtEncryptionKeyParameter;
 
         internal ResourceStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
@@ -131,11 +131,11 @@ namespace DecklistApiCdk
                 Tier = ParameterTier.STANDARD,
             });
 
-            jwtSecretKeyParameter = new StringParameter(this, "DecklistApiJwtSecretParameter", new StringParameterProps
+            jwtSigningKeyParameter = new StringParameter(this, "DecklistApiJwtSigningKeyParameter", new StringParameterProps
             {
-                ParameterName = "/decklist-api/config/jwt-secret",
+                ParameterName = "/decklist-api/config/jwt-signing-key",
                 StringValue = "insert-value",
-                Description = "JWT Secret",
+                Description = "JWT Signing Key (32 bytes)",
                 Tier = ParameterTier.STANDARD,
             });
 
@@ -143,7 +143,7 @@ namespace DecklistApiCdk
             {
                 ParameterName = "/decklist-api/config/jwt-encryption-key",
                 StringValue = "insert-value",
-                Description = "JWT Encryption KEy",
+                Description = "JWT Encryption Key (32 bytes)",
                 Tier = ParameterTier.STANDARD,
             });
 
