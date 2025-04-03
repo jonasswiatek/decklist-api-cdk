@@ -28,6 +28,7 @@ namespace DecklistApiCdk
         public StringParameter sendgridApiKeyParameter;
         public StringParameter emailHashPepperParameter;
         public StringParameter jwtSecretKeyParameter;
+        public StringParameter jwtEncryptionKeyParameter;
 
         internal ResourceStack(Construct scope, string id, IStackProps props = null) : base(scope, id, props)
         {
@@ -135,6 +136,14 @@ namespace DecklistApiCdk
                 ParameterName = "/decklist-api/config/jwt-secret",
                 StringValue = "insert-value",
                 Description = "JWT Secret",
+                Tier = ParameterTier.STANDARD,
+            });
+
+            jwtEncryptionKeyParameter = new StringParameter(this, "DecklistApiJwtEncryptionKeyParameter", new StringParameterProps
+            {
+                ParameterName = "jwt-encryption-key",
+                StringValue = "insert-value",
+                Description = "JWT Encryption KEy",
                 Tier = ParameterTier.STANDARD,
             });
 

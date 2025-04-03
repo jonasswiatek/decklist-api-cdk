@@ -37,6 +37,7 @@ namespace MtgDecklistsCdk
             resourceStack.googleSigninClientIdParameter.GrantRead(decklistApiImageFunction.Role);
             resourceStack.emailHashPepperParameter.GrantRead(decklistApiImageFunction.Role);
             resourceStack.jwtSecretKeyParameter.GrantRead(decklistApiImageFunction.Role);
+            resourceStack.jwtEncryptionKeyParameter.GrantRead(decklistApiImageFunction.Role);
 
             var lambdaFunctionUrl = decklistApiImageFunction.AddFunctionUrl(new FunctionUrlOptions {
                 AuthType = FunctionUrlAuthType.NONE,
