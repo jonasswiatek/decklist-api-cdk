@@ -30,7 +30,7 @@ namespace MtgDecklistsCdk
                 Architecture = Architecture.ARM_64,
                 Timeout = Duration.Seconds(10),
                 MemorySize = 256,
-                Tracing = Tracing.ACTIVE
+                Tracing = Tracing.ACTIVE,
             });
 
             resourceStack.sendgridApiKeyParameter.GrantRead(decklistApiImageFunction.Role);
@@ -59,7 +59,6 @@ namespace MtgDecklistsCdk
             resourceStack.DecklistApiDecksDdbTable.GrantReadWriteData(decklistApiImageFunction.Role);
             resourceStack.DecklistApiDecksDdbTable.Grant(decklistApiImageFunction.Role, "dynamodb:PartiQLSelect");
 
-            decklistApiImageFunction.Role.AddManagedPolicy(ManagedPolicy.FromManagedPolicyArn(this, "decklist-api-lambda-xray-write-policy", "arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess"));
             resourceStack.EmailIdentity.GrantSendEmail(decklistApiImageFunction.Role);
 
             //A cloudfront function that will rewrite certain paths to request index.html.
