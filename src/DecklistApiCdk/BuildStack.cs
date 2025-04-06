@@ -120,7 +120,8 @@ namespace MtgDecklistsCdk
                 ProjectName = "scryfall-reader",
                 Source = Source.GitHub(new GitHubSourceProps {
                     Owner = "jonasswiatek",
-                    Repo = "decklist-api-scryfall-import",
+                    Repo = "decklist-api",
+                    BranchOrRef = "feature/merge-with-scryfall-import"
                 }),
                 Environment = new BuildEnvironment {
                     ComputeType = ComputeType.SMALL,
